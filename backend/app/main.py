@@ -5,6 +5,7 @@ from fastapi import FastAPI
 
 from .db import init_schema
 from .routes_auth import demo_router, router as auth_router
+from .routes_copies import router as copies_router
 from .routes_police import router as police_router
 from .routes_survivor import router as survivor_router
 from .seed import seed_if_empty
@@ -23,6 +24,7 @@ app.include_router(auth_router)
 app.include_router(demo_router)
 app.include_router(survivor_router)
 app.include_router(police_router)
+app.include_router(copies_router)
 
 
 @app.get("/api/health")

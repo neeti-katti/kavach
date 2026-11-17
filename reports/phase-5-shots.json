@@ -1,0 +1,24 @@
+{
+  "base": "http://localhost:5173",
+  "outDir": "img",
+  "shots": [
+    {
+      "path": "/police/cases/KV-2026-BLR-0007", "login": { "username": "kavitha.rao" }, "wait": 2500,
+      "steps": [
+        { "eval": "window.__btn = (txt) => { const b = [...document.querySelectorAll('button')].find(b => b.textContent.trim() === txt && !b.disabled); if (!b) throw new Error('missing button ' + txt); b.click(); }; __btn('Public copy'); true", "after": 3000 },
+        { "shot": "p5-studio.png", "full": true, "log": "[...document.querySelectorAll('p.font-display')].map(p => p.textContent)" },
+        { "eval": "__btn('Court'); true", "after": 2500 },
+        { "shot": "p5-studio-court.png", "full": true },
+        { "eval": "__btn('Public'); true", "after": 2500 },
+        { "eval": "__btn('Release public copy'); true", "after": 3000 },
+        { "shot": "p5-print.png", "full": true, "pdf": "p5-public-copy.pdf", "log": "location.pathname" },
+        { "navigate": "/police/copies", "after": 2500 },
+        { "shot": "p5-copies.png" }
+      ]
+    },
+    {
+      "path": "/police/cases/KV-2026-DEL-0005/copy", "login": { "username": "neha.verma" }, "wait": 3500,
+      "steps": [ { "shot": "p5-studio-hi.png", "full": true, "log": "[...document.querySelectorAll('p.font-display')].map(p => p.textContent)" } ]
+    }
+  ]
+}

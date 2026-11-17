@@ -124,6 +124,19 @@ async function shots(jobsPath) {
         if (st.wait) await sleep(st.wait)
         if (st.navigate) { await send('Page.navigate', { url: jobs.base + st.navigate }); await sleep(st.after ?? 2000) }
         if (st.log) console.log(st.log, JSON.stringify(await evaluate(st.log)))
+        if (st.pdf) {
+          // Print the current page exactly as a user's "Save as PDF" would, for copy-paste and metadata checks.
+          const r = await send('Page.printToPDF', { printBackground: true, transferMode: 'ReturnAsStream', paperWidth: 8.27, paperHeight: 11.69 })
+          const chunks = []
+          for (;;) {
+            const part = await send('IO.read', { handle: r.stream, size: 1 << 20 })
+            chunks.push(Buffer.from(part.data, part.base64Encoded ? 'base64' : 'utf8'))
+            if (part.eof) break
+          }
+          await send('IO.close', { handle: r.stream })
+          writeFileSync(join(outDir, st.pdf), Buffer.concat(chunks))
+          console.log('pdf', st.pdf)
+        }
         if (st.shot) await capture(st.shot, st.full)
       }
       if (s.file) await capture(s.file, s.full)

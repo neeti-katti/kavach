@@ -24,7 +24,7 @@ export function ToastProvider({ children }) {
   return (
     <ToastContext.Provider value={toast}>
       {children}
-      <div aria-live="polite" className="pointer-events-none fixed right-6 bottom-6 z-[100] flex w-[min(380px,calc(100vw-3rem))] flex-col gap-2">
+      <div aria-live="polite" className="pointer-events-none fixed right-6 bottom-6 z-[100] flex print:hidden w-[min(380px,calc(100vw-3rem))] flex-col gap-2">
         {toasts.map((t) => {
           const tone = TONES[t.tone] ?? TONES.info
           const Icon = tone.icon

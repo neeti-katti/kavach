@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Kavach · Phase 5 Report: Redaction engine and public copy</title>
+<link rel="stylesheet" href="report.css">
+</head>
+<body>
+<header class="cover">
+  <div class="logo"><img src="../frontend/public/brand/kavach-logo.webp" alt="Kavach logo"></div>
+  <div>
+    <p class="eyebrow">Build report · Phase 5 of 7</p>
+    <h1>Redaction engine, risk-based release gate and public copy</h1>
+    <p class="meta">17 November 2026 · Time box 15 minutes · <span class="chip done">Complete</span></p>
+  </div>
+</header>
+<div class="tricolour"></div>
+
+<main class="page">
+  <p class="lead">Kavach can now produce a public copy of a case that is safe to release. The Redaction Studio puts the usual name-only redaction next to Kavach's six-layer redaction, scores both, and only lets a copy out if the score is low. On the English demo case the risk drops from 45 to 0; on the Hindi case from 27 to 0. The released PDF, copied out character by character, contains none of the survivor's details.</p>
+
+  <div class="stats">
+    <div class="stat"><b>45 → 0</b><span>risk score, English child case</span></div>
+    <div class="stat"><b>27 → 0</b><span>risk score, Hindi case</span></div>
+    <div class="stat"><b>16 / 16</b><span>API checks passed</span></div>
+    <div class="stat"><b>0 / 10</b><span>identity values found in the printed PDF's text</span></div>
+  </div>
+
+  <h2>Redaction Studio</h2>
+  <figure><img src="img/p5-studio.png" alt="Redaction Studio, English case"><figcaption>Left: a find-and-replace on her full name. Her first name, father, mother, phone, school, street, locality and age are all still there (shown as red labels, never as the text itself), so it scores 45 and is blocked. Right: Kavach removes them, re-checks its own output (clean), scores 0 and offers "Release public copy".</figcaption></figure>
+  <figure><img src="img/p5-studio-hi.png" alt="Redaction Studio, Hindi case"><figcaption>The same on the Hindi complaint, including the 9-digit number OCR garbled in Phase 3 ("number hidden") and every age mention ("age withheld").</figcaption></figure>
+
+  <h2>The six layers</h2>
+  <table>
+    <tr><th style="width:5%">#</th><th style="width:26%">Layer</th><th>What it catches</th></tr>
+    <tr><td>1</td><td>Tagged identity fields</td><td>Everything she typed into the form, with parts and variants: "Kavya" from "Kavya Rao", the street from her address, the school name</td></tr>
+    <tr><td>2</td><td>Numbers and contact patterns</td><td>Phone, Aadhaar, PAN, email, pin code, vehicle numbers, dates of birth, and any run of 8+ digits</td></tr>
+    <tr><td>3</td><td>Places, schools, other clues</td><td>Schools and workplaces, villages and localities (English, Hindi, Kannada), caste or community, a parent's job, exact ages</td></tr>
+    <tr><td>4</td><td>Relatives and relations</td><td>"Her brother Arun" loses the name; "her uncle Ravi" and "her tutor" become "a relative" and "a person known to her" (in the text's own language)</td></tr>
+    <tr><td>5</td><td>Risk score</td><td>The same detector runs again over the result; whatever it still finds is scored. A place and a school together count double.</td></tr>
+    <tr><td>6</td><td>Rebuild</td><td>The copy is assembled only from the redacted text, so there is no hidden text layer, annotation or attachment to leak</td></tr>
+  </table>
+
+  <h3>Risk score and release gate</h3>
+  <table>
+    <tr><th>Left in the copy</th><th style="width:12%">Points</th><th>Left in the copy</th><th style="width:12%">Points</th></tr>
+    <tr><td>Name, relative's name, phone, address, ID, long number</td><td>6 each</td><td>Parent's job, relation to the accused, exact date with the place</td><td>2 each</td></tr>
+    <tr><td>School, locality, caste, pin code, vehicle, date of birth</td><td>3 each</td><td>Exact age</td><td>1</td></tr>
+  </table>
+  <p><b>0–2:</b> released. <b>3–5:</b> a supervisor must review it. <b>6 or more:</b> blocked; its text is never even sent to the screen.</p>
+
+  <h3>Copy profiles</h3>
+  <figure><img src="img/p5-studio-court.png" alt="Court profile"><figcaption>Court copy: names, contacts and relatives removed, but the exact date, area and age kept for the court. A court copy is blocked only if a direct identifier remains.</figcaption></figure>
+  <p class="muted">The public copy goes further: area becomes the city ("Bengaluru"), the date becomes the month ("November 2026") and age becomes "a minor" or "an adult".</p>
+
+  <h2>The released copy</h2>
+  <div class="grid2">
+    <figure><img src="img/p5-print.png" alt="Printable public copy"><figcaption>The released copy as a clean document with a "Print or save as PDF" button. Withheld details appear as plain labels.</figcaption></figure>
+    <figure><img src="img/p5-copies.png" alt="Public copies list"><figcaption>Public copies list: risk score, status, who made it, and an "Open copy" link for released copies only.</figcaption></figure>
+  </div>
+  <div class="callout">
+    <p><b>Copy-paste test.</b> The copy page was printed to PDF exactly as "Save as PDF" does, and every character was extracted with a PDF library. None of 10 identity values (her name, surname, father's and mother's names, phone, school, locality, pin code, street, age) appear. The PDF has no annotations or attachments, and its metadata holds only a title ("Public copy KV-2026-BLR-0007"), the creation date and the browser's name: no author or user.</p>
+    <p style="margin:0"><b>Fixed:</b> the first print included the on-screen "Public copy released" message; messages are now hidden when printing.</p>
+  </div>
+
+  <h2>Checks run</h2>
+  <table>
+    <tr><th>Check</th><th>Result</th><th style="width:12%">Status</th></tr>
+    <tr><td>Name-only vs Kavach on both Bengaluru cases</td><td>45 and 24 (blocked) vs 0 and 0 (released)</td><td><span class="chip done">Pass</span></td></tr>
+    <tr><td>Hindi case in the Studio</td><td>27 (blocked) vs 0 (released)</td><td><span class="chip done">Pass</span></td></tr>
+    <tr><td>Preview and stored copy searched for 11 identity values</td><td>None present; leaks are sent as labels only</td><td><span class="chip done">Pass</span></td></tr>
+    <tr><td>Engine on extra phrasings</td><td>"Her uncle Ravi Kumar", "my father … is a tailor", "Mr. Prakash Shetty", Hindi and Kannada schools, relations and ages all handled; residual 0</td><td><span class="chip done">Pass</span></td></tr>
+    <tr><td>Access</td><td>Another officer cannot preview, open or approve; only the station's supervisor can review</td><td><span class="chip done">Pass</span></td></tr>
+    <tr><td>Review path</td><td>Medium-risk copy appears for the supervisor, is released on approval and cannot be decided twice</td><td><span class="chip done">Pass</span></td></tr>
+    <tr><td>Blocked copy</td><td>Only its findings are returned, never its text</td><td><span class="chip done">Pass</span></td></tr>
+    <tr><td>Released PDF text and metadata</td><td>No identity values, no annotations, no author</td><td><span class="chip done">Pass</span></td></tr>
+  </table>
+  <p class="muted">Fixed during the phase: "Her uncle …" at the start of a sentence was missed; a Kannada relation was generalised in English; the Hindi and Kannada words for "I" were swallowed into school names; and the generic word "circle" from a locality name was being hidden everywhere.</p>
+
+  <h2>Not done yet, and limits</h2>
+  <ul>
+    <li>Detection is rule-based, not a trained model. Nicknames, misspellings and places it has no pattern for can slip through; that is why the result is re-scored and a supervisor reviews medium risk. We will not claim zero risk.</li>
+    <li>The demo cases all redact to 0, so the review path was tested with inserted medium-risk and blocked copies rather than a natural one.</li>
+    <li>Dates inside the complaint text are kept as case facts; the header shows only the month, and the place they could be paired with is removed.</li>
+    <li>Over-redaction happens: the accused's age is also withheld, and a locality that is part of her address shows as "address hidden".</li>
+    <li>"Print or save as PDF" uses the browser; the PDF's Creator field is the browser's name.</li>
+    <li>Measured recall on a larger held-out synthetic set is part of Phase 7's run-through, not this phase.</li>
+  </ul>
+
+  <div class="next">
+    <h3>Next: Phase 6, security and honeypot</h3>
+    <p>Arm the decoys: canary case records that lock an account the moment they are opened, decoy endpoints such as /api/admin/export-all and /backup.sql, honey credentials in a planted config file, wrong-case attempts turned into alerts, per-user rate limits, and the live security dashboard with alerts, locked accounts and the audit log.</p>
+  </div>
+</main>
+</body>
+</html>

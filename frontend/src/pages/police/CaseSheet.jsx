@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   ArrowLeft, CalendarClock, Check, ClipboardList, Eye, FileCheck, History, KeyRound, Lock, LockKeyhole, MapPin,
   Phone, PhoneCall, RotateCcw, ScanLine, Send, ShieldCheck, Siren, UserCheck, Users,
@@ -52,6 +52,7 @@ function RevealModal({ reveal, onClose, user }) {
 
 export default function CaseSheet() {
   const { caseId } = useParams()
+  const navigate = useNavigate()
   const { user } = useAuth()
   const toast = useToast()
   const officer = user.role === 'officer'
@@ -114,6 +115,7 @@ export default function CaseSheet() {
             </div>
           </div>
           <div className="flex flex-wrap gap-3">
+            <Button variant="secondary" icon={FileCheck} onClick={() => navigate(`/police/cases/${c.id}/copy`)}>Public copy</Button>
             {officer && active && <Button variant="secondary" icon={Phone} disabled={busy} onClick={placeCall}>Call survivor</Button>}
             {primary}
           </div>

@@ -13,8 +13,20 @@ export default function Approvals() {
   const toast = useToast()
   const [rows, setRows] = useState(null)
   const [busy, setBusy] = useState(null)
-  const load = useCallback(() => api('/police/reveals').then(setRows).catch(() => setRows([])), [])
+  const [copies, setCopies] = useState([])
+  const load = useCallback(() => {
+    api('/police/reveals').then(setRows).catch(() => setRows([]))
+    api('/police/copies').then((c) => setCopies(c.filter((x) => x.status === 'needs_review'))).catch(() => setCopies([]))
+  }, [])
   useEffect(() => { load() }, [load])
+
+  async function decideCopy(c, approve) {
+    try {
+      await api(`/police/copies/${c.id}/decide`, { method: 'POST', body: { approve } })
+      toast(approve ? 'Public copy released.' : 'Public copy blocked.', 'success')
+      load()
+    } catch (e) { toast(e.message, 'error') }
+  }
 
   async function decide(r, approve) {
     setBusy(r.id)
@@ -62,8 +74,21 @@ export default function Approvals() {
               { key: 'at', label: 'Asked', render: (r) => <span className="text-faint">{fmtTime(r.created_at)}</span> }]} />
         </Card>
         <Card className="xl:col-span-4">
-          <CardHeader icon={FileText} title="Public copies to review" />
-          <EmptyState icon={FileText} title="None yet">Medium-risk public copies will wait here for review once redaction is built (Phase 5).</EmptyState>
+          <CardHeader icon={FileText} title="Public copies to review" subtitle="Risk score 3 to 5" />
+          {copies.length === 0 ? <EmptyState icon={FileText} title="None waiting">Medium-risk public copies wait here for your decision.</EmptyState> : (
+            <ul className="flex flex-col gap-2 p-4">
+              {copies.map((c) => (
+                <li key={c.id} className="flex flex-col gap-2 rounded-xl border border-line-soft bg-white/[.02] px-4 py-3">
+                  <span className="flex items-center justify-between"><CaseId>{c.case_id}</CaseId><span className="text-sm text-[#F3C27A]">risk {c.risk_score}</span></span>
+                  <span className="text-xs text-faint">{c.findings.map((f) => f.label).join(', ')}</span>
+                  <span className="flex justify-end gap-2">
+                    <Button size="sm" variant="secondary" icon={X} onClick={() => decideCopy(c, false)}>Block</Button>
+                    <Button size="sm" icon={Check} onClick={() => decideCopy(c, true)}>Release</Button>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
         </Card>
       </div>
     </div>

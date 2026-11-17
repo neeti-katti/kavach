@@ -1,10 +1,13 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
-import { FileCheck, Lock, Radar, ScrollText, Siren } from 'lucide-react'
+import { Lock, Radar, ScrollText, Siren } from 'lucide-react'
 import { ROLE_HOME, useAuth } from './auth'
 import StaffShell from './layouts/StaffShell'
 import SurvivorShell from './layouts/SurvivorShell'
 import Login from './pages/Login'
 import Placeholder from './pages/Placeholder'
+import PrintCopy from './pages/PrintCopy'
+import Copies from './pages/police/Copies'
+import RedactionStudio from './pages/police/RedactionStudio'
 import Allocation from './pages/police/Allocation'
 import Approvals from './pages/police/Approvals'
 import CaseSheet from './pages/police/CaseSheet'
@@ -40,11 +43,13 @@ export default function App() {
         <Route path="cases" element={<Cases />} />
         <Route path="cases/:caseId" element={<CaseSheet />} />
         <Route path="reveals" element={<Reveals />} />
-        <Route path="copies" element={<Placeholder eyebrow="Police" title="Public copies" icon={FileCheck} phase={5}
-          description="Redacted copies with their risk score, ready to release, waiting for review, or blocked." empty="No public copies yet" />} />
+        <Route path="cases/:caseId/copy" element={<RedactionStudio />} />
+        <Route path="copies" element={<Copies />} />
         <Route path="allocation" element={<Allocation />} />
         <Route path="approvals" element={<Approvals />} />
       </Route>
+
+      <Route path="/print/copy/:copyId" element={<RequireRole roles={['officer', 'supervisor']}><PrintCopy /></RequireRole>} />
 
       <Route path="/security" element={<RequireRole roles={['security']}><StaffShell area="security" /></RequireRole>}>
         <Route index element={<SecurityOverview />} />
