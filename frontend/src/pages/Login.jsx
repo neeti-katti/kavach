@@ -35,6 +35,9 @@ export default function Login() {
   const [busy, setBusy] = useState(false)
 
   useEffect(() => { api('/demo/accounts').then(setDemo).catch(() => {}) }, [])
+  const params = new URLSearchParams(window.location.search)
+  const notice = params.has('locked') ? 'This account has been locked by Kavach\'s security system. Contact the security admin.'
+    : params.has('ended') ? 'Your session has ended. Please sign in again.' : null
   useEffect(() => { document.title = 'Kavach' }, [])
 
   if (loading) return null
@@ -67,6 +70,11 @@ export default function Login() {
     e.preventDefault()
     run(async () => {
       const r = await api('/auth/staff/login', { method: 'POST', body: { username, password } })
+      if (r.token) { // some accounts sign straight in
+        signIn(r.token, r.user)
+        navigate(ROLE_HOME[r.user.role] ?? '/', { replace: true })
+        return
+      }
       setChallenge({ id: r.challenge_id, hint: 'Enter the 6-digit code from your authenticator app.', demoCode: r.demo_code })
     })
   }
@@ -120,6 +128,7 @@ export default function Login() {
           <div className="card-glow w-full max-w-[520px] rounded-3xl border border-gold/25 p-7 backdrop-blur-md sm:p-9 lg:ml-auto">
             <h2 className="font-display text-2xl font-semibold text-text">Sign in</h2>
             <p className="mt-1 text-sm text-muted">Choose who you are.</p>
+            {notice && <p role="alert" className="mt-4 rounded-xl border border-danger/50 bg-danger/10 px-4 py-3 text-sm text-[#FFB4B5]">{notice}</p>}
 
             <div role="tablist" aria-label="Sign in as" className="mt-6 grid grid-cols-3 gap-3">
               {ROLES.map((r) => (

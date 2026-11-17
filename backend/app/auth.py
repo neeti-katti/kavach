@@ -109,6 +109,9 @@ def current_user(request: Request, db: sqlite3.Connection = Depends(db_dep)) -> 
         raise HTTPException(401, "Your session has ended. Please sign in again.")
     if row["locked"]:
         raise HTTPException(423, "This account is locked. Contact the security admin.")
+    if row["is_honey"]:
+        from . import audit  # every move made with the honey account is recorded for the security admin
+        audit.log(db, "honey_activity", actor=dict(row), detail=f"{request.method} {request.url.path}"[:120])
     return dict(row)
 
 

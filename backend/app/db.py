@@ -152,6 +152,14 @@ CREATE TABLE IF NOT EXISTS alerts (
   resolved    INTEGER NOT NULL DEFAULT 0
 );
 
+CREATE TABLE IF NOT EXISTS blocked_clients (
+  key         TEXT PRIMARY KEY,           -- address, or address + browser signature on a single demo machine
+  ip          TEXT,
+  ua          TEXT,
+  reason      TEXT NOT NULL,
+  created_at  TEXT NOT NULL
+);
+
 CREATE INDEX IF NOT EXISTS idx_cases_officer ON cases(assigned_officer_id);
 CREATE INDEX IF NOT EXISTS idx_cases_survivor ON cases(survivor_user_id);
 CREATE INDEX IF NOT EXISTS idx_audit_case ON audit_log(case_id);
@@ -198,6 +206,8 @@ MIGRATIONS = [
     ("cases", "escalated", "INTEGER NOT NULL DEFAULT 0"),
     ("cases", "sealed_at", "TEXT"),
     ("cases", "report_summary", "TEXT"),
+    ("alerts", "target", "TEXT"),
+    ("alerts", "ua", "TEXT"),
 ]
 
 

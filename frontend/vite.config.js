@@ -9,6 +9,7 @@ export default defineConfig({
   server: {
     port: 5173,
     strictPort: true,
-    proxy: { '/api': 'http://127.0.0.1:8000' },
+    // xfwd passes the caller's address on, so the API can tell clients apart.
+    proxy: { '/api': { target: 'http://127.0.0.1:8000', xfwd: true } },
   },
 })

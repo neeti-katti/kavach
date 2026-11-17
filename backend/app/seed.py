@@ -86,6 +86,23 @@ def seed(db) -> None:
     audit.log(db, "system_seeded", detail=f"stations={len(STATIONS)} staff={len(STAFF)} canaries={len(CANARIES)}")
 
 
+# Honey credentials: this account exists only to be found. Its password sits in backend/legacy/config.old.env,
+# a planted "old config" file. Logging in with it opens an empty view and raises a critical alert.
+HONEY_USER = ("sysadmin", "Kv#Admin@2024", "System Administrator", "ADM-01")
+
+
+def ensure_honey() -> None:
+    with get_db() as db:
+        if db.execute("SELECT 1 FROM users WHERE is_honey = 1").fetchone():
+            return
+        username, password, name, badge = HONEY_USER
+        db.execute(
+            "INSERT INTO users(role, username, password_hash, display_name, badge, gender, station_id, is_honey, created_at) "
+            "VALUES ('supervisor', ?, ?, ?, ?, NULL, NULL, 1, ?)",
+            (username, hash_password(password), name, badge, now_iso()),
+        )
+
+
 def seed_if_empty() -> bool:
     with get_db() as db:
         if db.execute("SELECT COUNT(*) FROM stations").fetchone()[0]:
@@ -102,3 +119,4 @@ if __name__ == "__main__":
                 p.unlink()
     init_schema()
     print("Seeded." if seed_if_empty() else "Database already has data; use --reset to start over.")
+    ensure_honey()

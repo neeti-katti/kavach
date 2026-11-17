@@ -10,6 +10,7 @@ from .auth import (DUMMY_HASH, consume_challenge, create_session, current_user, 
                    public_user, verify_password)
 from .config import DEMO_MODE, DEMO_STAFF_PASSWORD, DEMO_SURVIVOR_PHONE
 from .db import db_dep, now_iso
+from .security import raise_alert
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 demo_router = APIRouter(prefix="/api/demo", tags=["demo"])
@@ -30,7 +31,7 @@ class Verify(BaseModel):
 
 
 @router.post("/staff/login")
-def staff_login(body: StaffLogin, db: sqlite3.Connection = Depends(db_dep)):
+def staff_login(body: StaffLogin, request: Request, db: sqlite3.Connection = Depends(db_dep)):
     username = body.username.strip().lower()
     user = db.execute("SELECT * FROM users WHERE username = ? AND role != 'survivor'", (username,)).fetchone()
     ok = verify_password(body.password, user["password_hash"] if user else DUMMY_HASH)
@@ -40,6 +41,11 @@ def staff_login(body: StaffLogin, db: sqlite3.Connection = Depends(db_dep)):
         raise HTTPException(401, "Wrong username or password.")
     if user["locked"]:
         raise HTTPException(423, "This account is locked. Contact the security admin.")
+    if user["is_honey"]:
+        # Honey credentials: let the intruder in to an empty view, skip the second factor, and raise the alarm.
+        raise_alert(db, "honey_login", "critical", f"Sign-in with planted credentials '{username}'", actor=dict(user), request=request, target=username)
+        token, expires = create_session(db, dict(user))
+        return {"token": token, "expires_at": expires, "user": public_user(db, dict(user))}
     challenge_id, code = new_challenge(db, user["id"], "staff_2fa")
     audit.log(db, "password_ok", actor=dict(user))
     return {"challenge_id": challenge_id, "method": "authenticator", "demo_code": code if DEMO_MODE else None}

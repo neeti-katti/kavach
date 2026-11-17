@@ -1,0 +1,20 @@
+{
+  "base": "http://localhost:5173",
+  "outDir": "img",
+  "shots": [
+    {
+      "path": "/security", "login": { "username": "anita.desai" }, "wait": 3500,
+      "steps": [
+        { "shot": "p6-overview.png", "full": true },
+        { "navigate": "/security/alerts", "after": 3000 },
+        { "shot": "p6-alerts.png", "full": true },
+        { "navigate": "/security/locked", "after": 3000 },
+        { "shot": "p6-locked.png", "full": true },
+        { "navigate": "/security/decoys", "after": 3000 },
+        { "shot": "p6-decoys.png", "full": true },
+        { "navigate": "/security/audit", "after": 3000 },
+        { "shot": "p6-audit.png" }
+      ]
+    }
+  ]
+}

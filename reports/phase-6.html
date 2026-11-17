@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Kavach · Phase 6 Report: Security and honeypot</title>
+<link rel="stylesheet" href="report.css">
+</head>
+<body>
+<header class="cover">
+  <div class="logo"><img src="../frontend/public/brand/kavach-logo.webp" alt="Kavach logo"></div>
+  <div>
+    <p class="eyebrow">Build report · Phase 6 of 7</p>
+    <h1>Security and the honeypot layer</h1>
+    <p class="meta">17 November 2026 · Time box 13 minutes · <span class="chip done">Complete</span></p>
+  </div>
+</header>
+<div class="tricolour"></div>
+
+<main class="page">
+  <p class="lead">Kavach now catches the people its access checks are meant to stop. Five kinds of tripwire are armed, and each one fires an alert on the live security dashboard within two seconds:</p>
+  <ul>
+    <li>decoy cases hidden among real case numbers</li>
+    <li>decoy admin and backup endpoints</li>
+    <li>honey credentials in a planted old config file</li>
+    <li>repeated attempts to open other people's cases</li>
+    <li>request floods</li>
+  </ul>
+  <p>Depending on the tripwire, it also locks the account or blocks the client.</p>
+
+  <div class="stats">
+    <div class="stat"><b>22 / 22</b><span>attack-script checks passed</span></div>
+    <div class="stat"><b>&lt; 1 s</b><span>from opening a decoy case to the account being locked</span></div>
+    <div class="stat"><b>5 · 11 · 1</b><span>decoy cases · decoy endpoints · honey account</span></div>
+    <div class="stat"><b>0</b><span>survivor details in any security view</span></div>
+  </div>
+
+  <h2>The live security monitor</h2>
+  <figure><img src="img/p6-overview.png" alt="Security overview after the attacks"><figcaption>After the demo attacks the status panel turns red ("Tripwire fired"). The feed shows each alert with its severity, target, account and client, and every alert can be resolved. The audit chain stays intact.</figcaption></figure>
+  <div class="grid2">
+    <figure><img src="img/p6-quiet.png" alt="Quiet dashboard"><figcaption>Before: all quiet, system secure, honeypot armed.</figcaption></figure>
+    <figure><img src="img/p6-decoys.png" alt="Decoys page"><figcaption>Decoys: which decoy cases, endpoints and honey credentials have been touched.</figcaption></figure>
+  </div>
+
+  <h2>The tripwires, tested</h2>
+  <table>
+    <tr><th style="width:21%">Tripwire</th><th>What the attacker did</th><th style="width:31%">What Kavach did</th></tr>
+    <tr><td>Decoy case</td><td>SI Rohit Sharma opened <code>KV-2026-BLR-0003</code>, a realistic case assigned to no one and never listed or linked</td><td>Showed only "not found"; raised a critical alert; locked the account and ended every session at once</td></tr>
+    <tr><td>Decoy endpoint</td><td>A script requested <code>/api/admin/export-all</code>, then tried anything else</td><td>Refused; raised a high alert; blocked that client from everything except sign-in; the demo browser was unaffected</td></tr>
+    <tr><td>Honey credentials</td><td>Someone signed in as <code>sysadmin</code> with the password from <code>backend/legacy/config.old.env</code></td><td>Let them in to an empty, fake police view with no second factor; raised a critical alert; recorded every page they opened</td></tr>
+    <tr><td>Wrong case</td><td>An officer opened a colleague's case by its address</td><td>"Not found"; a medium alert each time; the account locks after 3 attempts in 10 minutes</td></tr>
+    <tr><td>Flood</td><td>A script sent 305 requests in a few seconds</td><td>Request 301 onward refused ("too many requests"); one alert per minute, not one per request</td></tr>
+  </table>
+
+  <div class="grid2">
+    <figure><img src="img/p6-ended.png" alt="Rogue officer signed out"><figcaption>The rogue officer is thrown back to sign-in the moment the decoy case is touched.</figcaption></figure>
+    <figure><img src="img/p6-locked-login.png" alt="Locked sign-in"><figcaption>Signing in again: "This account is locked. Contact the security admin."</figcaption></figure>
+  </div>
+  <figure><img src="img/p6-honey.png" alt="Honey account view"><figcaption>What the intruder sees with the honey credentials: a convincing but empty supervisor dashboard. Meanwhile the security monitor shows "Honey credentials used" as a critical alert.</figcaption></figure>
+
+  <h2>Security admin tools</h2>
+  <figure><img src="img/p6-alerts.png" alt="Alerts page"><figcaption>Alerts, filterable by kind, each with a "Resolve" action.</figcaption></figure>
+  <div class="grid2">
+    <figure><img src="img/p6-locked.png" alt="Locked accounts"><figcaption>Locked accounts with the reason, and blocked clients; unlocking asks for confirmation and is logged.</figcaption></figure>
+    <figure><img src="img/p6-audit.png" alt="Audit log"><figcaption>The audit log with its hash-chain status. It holds actions, case numbers and accounts, never personal data.</figcaption></figure>
+  </div>
+
+  <h2>Also added</h2>
+  <ul>
+    <li><b>Security headers</b> on every response: no content sniffing, no framing, no referrer, and no caching of API data.</li>
+    <li><b>Instant sign-out:</b> the app returns any user whose session ends or account is locked to sign-in with the reason.</li>
+    <li><b>Separation:</b> officers and supervisors cannot open any security view, and the security admin cannot open case sheets.</li>
+  </ul>
+
+  <h2>Found and fixed during testing</h2>
+  <div class="callout">
+    <p><b>The tamper-evident audit log caught a real race.</b> Two requests arriving in the same instant both read the same "last entry" and chained to it. React's development mode fires the Redaction Studio preview twice. The chain check reported this as a break, which is exactly what it is for.</p>
+    <p style="margin:0"><b>Fix:</b> each audit write now takes the database write lock before reading the previous entry, so writes queue instead of racing. Results after the fix: 200 writes from 8 threads at once with 0 forks, and the full attack suite on fresh data reports the chain intact.</p>
+  </div>
+
+  <h2>Not done yet, and limits</h2>
+  <ul>
+    <li>On one demo machine every request comes from localhost, so a blocked client is identified by address plus browser signature. In deployment it would be the address. A determined attacker can change their browser signature; the address block is the real control.</li>
+    <li>The rate limiter keeps counts in memory, so they reset when the server restarts and are not shared across servers.</li>
+    <li>Alerts appear on the dashboard only. Sending them by SMS or email needs a provider.</li>
+    <li>Canary documents (files that report when opened elsewhere) are not built; the plan listed them as a stretch item.</li>
+    <li>The honey account's empty view is convincing only at a glance.</li>
+  </ul>
+
+  <div class="next">
+    <h3>Next: Phase 7, demo data and full run-through</h3>
+    <p>Load clean synthetic demo data, including a scanned complaint, and add a "Load sample scan" button. Run the 7-minute demo script end to end without touching code, and measure how well the redaction catches identifiers on a held-out synthetic set. Write the README with start commands, demo accounts and the demo steps.</p>
+  </div>
+</main>
+</body>
+</html>

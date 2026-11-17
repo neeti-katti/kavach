@@ -10,12 +10,13 @@ import re
 import sqlite3
 from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from . import audit, vault
 from .allocation import allocate
 from .auth import require_roles
+from .security import trip_canary
 from .db import db_dep, now_iso
 from .intake import detect_language, next_case_id, station_for_pincode, tokenize
 
@@ -182,7 +183,11 @@ def my_complaints(user: dict = Depends(survivor_only), db: sqlite3.Connection = 
 
 
 @router.get("/complaints/{case_id}")
-def my_complaint(case_id: str, user: dict = Depends(survivor_only), db: sqlite3.Connection = Depends(db_dep)):
+def my_complaint(case_id: str, request: Request, user: dict = Depends(survivor_only), db: sqlite3.Connection = Depends(db_dep)):
+    if db.execute("SELECT 1 FROM cases WHERE id = ? AND is_canary = 1", (case_id,)).fetchone():
+        trip_canary(db, user, request, case_id)
+        db.commit()
+        raise HTTPException(404, "Not found")
     row = db.execute(
         "SELECT * FROM cases WHERE id = ? AND survivor_user_id = ? AND is_canary = 0", (case_id, user["id"])
     ).fetchone()

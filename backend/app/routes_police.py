@@ -11,7 +11,7 @@ import sqlite3
 from datetime import datetime, timedelta, timezone
 from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from . import audit, vault
@@ -20,6 +20,7 @@ from .auth import require_roles
 from .config import REVEAL_SECONDS
 from .db import db_dep, now_iso
 from .intake import tokenize
+from .security import note_wrong_case, trip_canary
 
 router = APIRouter(prefix="/api/police", tags=["police"])
 police = require_roles("officer", "supervisor")
@@ -66,14 +67,21 @@ def _expire_reveals(db: sqlite3.Connection) -> None:
     db.execute("UPDATE reveals SET status = 'expired' WHERE status = 'approved' AND expires_at < ?", (now_iso(),))
 
 
-def _load_case(db: sqlite3.Connection, case_id: str, user: dict) -> sqlite3.Row:
-    row = db.execute("SELECT * FROM cases WHERE id = ? AND is_canary = 0", (case_id,)).fetchone()
+def _load_case(db: sqlite3.Connection, case_id: str, user: dict, request: Request | None = None) -> sqlite3.Row:
+    row = db.execute("SELECT * FROM cases WHERE id = ?", (case_id,)).fetchone()
+    if row is not None and row["is_canary"]:
+        # A decoy case: it is never listed or linked, so opening it means someone is browsing or enumerating.
+        trip_canary(db, user, request, case_id)
+        db.commit()
+        raise HTTPException(404, "Not found")  # the intruder learns nothing; their account is already locked
     allowed = row is not None and (
         (user["role"] == "officer" and row["assigned_officer_id"] == user["id"])
         or (user["role"] == "supervisor" and row["station_id"] == user["station_id"])
     )
     if not allowed:
         audit.log(db, "case_access_denied", actor=user, detail=f"requested={case_id[:40]}")
+        if row is not None:
+            note_wrong_case(db, user, request, case_id)
         db.commit()  # keep the record even though the request fails
         raise HTTPException(404, "Not found")
     return row
@@ -164,10 +172,10 @@ def station_officers(user: dict = Depends(supervisor_only), db: sqlite3.Connecti
 # ---------- the case sheet ----------
 
 @router.get("/cases/{case_id}")
-def case_sheet(case_id: str, user: dict = Depends(police), db: sqlite3.Connection = Depends(db_dep)):
+def case_sheet(case_id: str, request: Request, user: dict = Depends(police), db: sqlite3.Connection = Depends(db_dep)):
     check_escalations(db)
     _expire_reveals(db)
-    row = _load_case(db, case_id, user)
+    row = _load_case(db, case_id, user, request)
     sheet = json.loads(row["case_sheet_json"] or "{}")
     present = {r["field"] for r in db.execute("SELECT field FROM vault_fields WHERE case_id = ?", (case_id,))}
     has_scan = db.execute("SELECT 1 FROM vault_files WHERE case_id = ? AND kind = 'original_scan'", (case_id,)).fetchone() is not None

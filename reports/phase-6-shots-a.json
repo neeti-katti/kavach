@@ -1,0 +1,24 @@
+{
+  "base": "http://localhost:5173",
+  "outDir": "img",
+  "shots": [
+    { "file": "p6-quiet.png", "path": "/security", "login": { "username": "anita.desai" }, "wait": 3500 },
+    {
+      "path": "/police/cases/KV-2026-BLR-0003", "login": { "username": "rohit.sharma" }, "wait": 3000,
+      "steps": [
+        { "wait": 2000, "shot": "p6-ended.png", "log": "location.pathname + location.search" },
+        { "eval": "window.__set = (id, v) => { const el = document.getElementById(id); const proto = HTMLInputElement.prototype; Object.getOwnPropertyDescriptor(proto, 'value').set.call(el, v); el.dispatchEvent(new Event('input', { bubbles: true })); }; [...document.querySelectorAll('[role=tab]')].find(b => b.textContent.startsWith('Police')).click(); true", "after": 600 },
+        { "eval": "__set('username', 'rohit.sharma'); __set('password', 'kavach@123'); [...document.querySelectorAll('button')].find(b => b.textContent.trim() === 'Continue').click(); true", "after": 2000 },
+        { "shot": "p6-locked-login.png", "log": "document.querySelector('[role=alert]:last-of-type')?.textContent" }
+      ]
+    },
+    {
+      "path": "/", "wait": 2500,
+      "steps": [
+        { "eval": "window.__set = (id, v) => { const el = document.getElementById(id); const proto = HTMLInputElement.prototype; Object.getOwnPropertyDescriptor(proto, 'value').set.call(el, v); el.dispatchEvent(new Event('input', { bubbles: true })); }; [...document.querySelectorAll('[role=tab]')].find(b => b.textContent.startsWith('Police')).click(); true", "after": 600 },
+        { "eval": "__set('username', 'sysadmin'); __set('password', 'Kv#Admin@2024'); [...document.querySelectorAll('button')].find(b => b.textContent.trim() === 'Continue').click(); true", "after": 3500 },
+        { "shot": "p6-honey.png", "log": "location.pathname" }
+      ]
+    }
+  ]
+}

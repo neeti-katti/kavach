@@ -11,6 +11,10 @@ from .db import now_iso
 
 def log(db: sqlite3.Connection, action: str, actor: dict | None = None, case_id: str | None = None,
         detail: str | None = None) -> None:
+    # Take the write lock before reading the last hash, so two requests logging at the same moment queue up instead of
+    # both chaining to the same predecessor (which the chain check would rightly flag as tampering).
+    if not db.in_transaction:
+        db.execute("BEGIN IMMEDIATE")
     prev = db.execute("SELECT hash FROM audit_log ORDER BY id DESC LIMIT 1").fetchone()
     prev_hash = prev["hash"] if prev else "GENESIS"
     ts = now_iso()
