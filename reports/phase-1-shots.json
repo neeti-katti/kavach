@@ -1,0 +1,9 @@
+{
+  "base": "http://localhost:5173",
+  "outDir": "img",
+  "shots": [
+    { "file": "p1-login.png", "path": "/", "width": 1440, "height": 900 },
+    { "file": "p1-officer.png", "path": "/police", "login": { "username": "kavitha.rao" } },
+    { "file": "p1-survivor.png", "path": "/survivor", "login": { "phone": "9000000001" } }
+  ]
+}

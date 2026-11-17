@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Kavach · Phase 1 Report: Foundation</title>
+<link rel="stylesheet" href="report.css">
+</head>
+<body>
+<header class="cover">
+  <div class="logo"><img src="../frontend/public/brand/kavach-logo.webp" alt="Kavach logo"></div>
+  <div>
+    <p class="eyebrow">Build report · Phase 1 of 7</p>
+    <h1>Foundation: database, encrypted vault and sign-in</h1>
+    <p class="meta">17 November 2026 · Time box 12 minutes · <span class="chip done">Complete</span></p>
+  </div>
+</header>
+<div class="tricolour"></div>
+
+<main class="page">
+  <p class="lead">Kavach now has a working backend and sign-in for every role. Survivor identity is stored only as encrypted data, with the key kept in a separate folder, and every action is written to a tamper-evident log. The screens are plain placeholders until Phase 2 applies the design.</p>
+
+  <div class="stats">
+    <div class="stat"><b>12</b><span>database tables</span></div>
+    <div class="stat"><b>13 / 13</b><span>checks passed</span></div>
+    <div class="stat"><b>0</b><span>identity values readable in the database file</span></div>
+    <div class="stat"><b>11</b><span>synthetic demo accounts</span></div>
+  </div>
+
+  <h2>What was built</h2>
+  <table>
+    <tr><th style="width:30%">Part</th><th>What it does</th></tr>
+    <tr><td>Database (SQLite)</td><td>Stores stations, users, sessions, cases, reveal requests, calls, public copies, alerts and the audit log. Case rows hold only the area and tokenised text, never the survivor's details.</td></tr>
+    <tr><td>Identity vault</td><td>Each identity field (name, phone, address, parents' names, school, age and more) is encrypted on its own with AES-256-GCM. Each value is bound to its case and field, so it cannot be copied onto another record.</td></tr>
+    <tr><td>Key storage</td><td>Encryption keys live in <code>backend/keys/</code>, apart from the database, and are excluded from git. A copied database alone is unreadable.</td></tr>
+    <tr><td>Survivor sign-in</td><td>Phone number plus a 6-digit one-time code. The phone is stored encrypted, with a keyed hash used only to find the account. Screens show it masked as <code>******0001</code>.</td></tr>
+    <tr><td>Staff sign-in</td><td>Username and password (scrypt-hashed), then a 6-digit second-factor code. Wrong username and wrong password give the same message, so attackers cannot discover usernames.</td></tr>
+    <tr><td>Sessions</td><td>Random tokens; the database stores only their hash. Survivor sessions last 1 hour, staff sessions 8 hours. Tokens are kept in the browser tab's session storage, so they vanish when the tab closes.</td></tr>
+    <tr><td>Role checks</td><td>Every protected request checks the role. Survivors, police and security each have their own area and are redirected away from the others.</td></tr>
+    <tr><td>Audit log</td><td>Records sign-ins, failures and account creation. Each entry includes a hash of the previous one, so editing or deleting a row is detectable. It never stores personal data.</td></tr>
+    <tr><td>Hidden API docs</td><td>The automatic API documentation pages are switched off, so the system does not advertise its endpoints.</td></tr>
+    <tr><td>Report tooling</td><td>A script drives headless Chrome to screenshot the real app and print these reports to PDF after every phase.</td></tr>
+  </table>
+
+  <h2>Checks run</h2>
+  <table>
+    <tr><th>Check</th><th>Result</th><th style="width:16%">Status</th></tr>
+    <tr><td>API health through the web app's proxy</td><td>Responds OK</td><td><span class="chip done">Pass</span></td></tr>
+    <tr><td>Officer sign-in (Insp. Kavitha Rao)</td><td>Signed in as officer, Bengaluru South</td><td><span class="chip done">Pass</span></td></tr>
+    <tr><td>Supervisor sign-in (SHO Prakash Reddy)</td><td>Signed in as supervisor</td><td><span class="chip done">Pass</span></td></tr>
+    <tr><td>Security admin sign-in (Anita Desai)</td><td>Signed in as security</td><td><span class="chip done">Pass</span></td></tr>
+    <tr><td>Survivor sign-in by phone code</td><td>Signed in; phone shown as ******0001</td><td><span class="chip done">Pass</span></td></tr>
+    <tr><td>Wrong code</td><td>Rejected: "Wrong code. 4 attempts left."</td><td><span class="chip done">Pass</span></td></tr>
+    <tr><td>Reusing a code that worked</td><td>Rejected</td><td><span class="chip done">Pass</span></td></tr>
+    <tr><td>Wrong password and unknown username</td><td>Same message for both</td><td><span class="chip done">Pass</span></td></tr>
+    <tr><td>Request with no session</td><td>Rejected: "Please sign in."</td><td><span class="chip done">Pass</span></td></tr>
+    <tr><td>Invalid phone number</td><td>Rejected with a clear message</td><td><span class="chip done">Pass</span></td></tr>
+    <tr><td>Officer opens the security area</td><td>Redirected back to the police area</td><td><span class="chip done">Pass</span></td></tr>
+    <tr><td>Plain-text search of the database file for 5 seeded names and phone numbers, plus the demo password</td><td>None found</td><td><span class="chip done">Pass</span></td></tr>
+    <tr><td>Audit log hash chain</td><td>Intact</td><td><span class="chip done">Pass</span></td></tr>
+  </table>
+
+  <h3>Encryption evidence</h3>
+  <p>A raw vault row, as stored on disk (the survivor's name field of a decoy case):</p>
+  <p><code>KV-2026-BLR-0003 · name · D325AF641D41C8E035A115249A61C0172C419151BA6A1E2C…</code></p>
+  <p class="muted">Only the server, holding the key file, can turn this back into the name. The neighbourhood ("Banashankari, Bengaluru") is stored readable on purpose, because officers are meant to see the area only.</p>
+
+  <h2>Synthetic demo data</h2>
+  <table>
+    <tr><th>Type</th><th>Records</th></tr>
+    <tr><td>Stations</td><td>Bengaluru South, Mysuru City, New Delhi Central</td></tr>
+    <tr><td>Officers (6, 4 women)</td><td>Insp. Kavitha Rao, SI Meena Iyer, SI Rohit Sharma, Insp. Lakshmi Gowda, SI Arjun Patil, Insp. Neha Verma</td></tr>
+    <tr><td>Supervisors</td><td>SHO Prakash Reddy, SHO Shalini Hegde, SHO Vikram Singh</td></tr>
+    <tr><td>Security admin</td><td>Anita Desai, Cyber Cell</td></tr>
+    <tr><td>Survivor</td><td>Demo phone <code>9000000001</code></td></tr>
+    <tr><td>Decoy cases</td><td>5 hidden records assigned to no one. They raise an alarm when opened once Phase 6 switches them on.</td></tr>
+  </table>
+  <p class="muted">All names, numbers and places are invented. Demo staff password: <code>kavach@123</code>. Codes are shown on screen in demo mode instead of being sent by SMS.</p>
+
+  <h2>Screens (placeholders)</h2>
+  <figure><img src="img/p1-login.png" alt="Sign-in screen"><figcaption>Sign-in: Survivor, Police and Security tabs with demo account shortcuts. Restyled in Phase 2.</figcaption></figure>
+  <div class="grid2">
+    <figure><img src="img/p1-officer.png" alt="Officer signed in"><figcaption>Officer signed in, with badge and station.</figcaption></figure>
+    <figure><img src="img/p1-survivor.png" alt="Survivor signed in"><figcaption>Survivor signed in; only the masked phone is shown.</figcaption></figure>
+  </div>
+
+  <h2>How to run it</h2>
+  <ul>
+    <li>Both servers start from <code>.claude/launch.json</code>: <code>kavach-api</code> on port 8000 and <code>kavach-web</code> on port 5173.</li>
+    <li>Open <code>http://localhost:5173</code>. Pick a tab, choose a demo account, then press "Use it" to fill the simulated code.</li>
+    <li>To reset the demo data: <code>python -m app.seed --reset</code> from <code>kavach/backend</code>.</li>
+  </ul>
+
+  <h2>Not done yet</h2>
+  <ul>
+    <li>The Kavach design, crowd and tricolour artwork, and full-width layouts (Phase 2).</li>
+    <li>Filing complaints, allocation, redaction, reveals and the honeypot (Phases 3 to 6).</li>
+    <li>Rate limiting and the decoy tripwires are planned for Phase 6.</li>
+  </ul>
+
+  <div class="next">
+    <h3>Next: Phase 2, UI shell</h3>
+    <p>Apply the maroon, gold and tricolour theme with the logo unchanged; draw the crowd, tricolour wave, chakra and skyline artwork; build the full-width sign-in screen and the Survivor, Police and Security layouts with shared components.</p>
+  </div>
+</main>
+</body>
+</html>

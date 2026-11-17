@@ -1,0 +1,9 @@
+# Secrets and local data never go into git
+backend/keys/
+backend/data/
+backend/.venv/
+__pycache__/
+*.pyc
+
+frontend/node_modules/
+frontend/dist/

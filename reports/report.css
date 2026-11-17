@@ -1,0 +1,45 @@
+/* Shared style for Kavach phase reports (printed to A4 PDF). Light paper with Kavach maroon, gold and tricolour accents. */
+* { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+@page { size: A4; }
+html, body { margin: 0; }
+body { font-family: "Segoe UI", "Nirmala UI", system-ui, sans-serif; color: #2A1D1A; font-size: 10.5pt; line-height: 1.5; }
+.page { padding: 0 14mm; }
+
+.cover { background: linear-gradient(120deg, #1A0D0F 0%, #3A1216 55%, #5A1C21 100%); color: #F4ECE6; padding: 12mm 14mm 10mm; display: flex; gap: 10mm; align-items: center; }
+.cover .logo { width: 30mm; height: 30mm; border-radius: 5mm; background: #FBF7F1; padding: 1.5mm; flex: none; box-shadow: 0 0 0 0.6mm #D4AF37; }
+.cover .logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.cover .eyebrow { font-size: 9pt; letter-spacing: 0.18em; text-transform: uppercase; color: #E8C766; margin: 0 0 1mm; }
+.cover h1 { font-family: Cambria, Georgia, serif; font-size: 24pt; line-height: 1.15; margin: 0 0 2mm; font-weight: 700; }
+.cover .meta { font-size: 9.5pt; color: #D9C9C0; margin: 0; }
+.chip { display: inline-block; border-radius: 99px; padding: 0.4mm 2.6mm; font-size: 8.5pt; font-weight: 600; vertical-align: middle; }
+.chip.done { background: #E3F2DF; color: #0E5E06; border: 0.3mm solid #9CCB92; }
+.chip.warn { background: #FBEFD6; color: #7A4D00; border: 0.3mm solid #E3C17A; }
+.chip.info { background: #F3E6E4; color: #7A1F24; border: 0.3mm solid #D9AFAA; }
+.tricolour { height: 2.2mm; background: linear-gradient(90deg, #FF9933 0 33.3%, #FFFFFF 33.3% 66.6%, #138808 66.6% 100%); border-bottom: 0.3mm solid #E7DCCF; }
+
+h2 { font-family: Cambria, Georgia, serif; color: #7A1F24; font-size: 15pt; margin: 8mm 0 2mm; padding-bottom: 1.2mm; border-bottom: 0.4mm solid #D4AF37; break-after: avoid; }
+h3 { font-size: 11pt; margin: 5mm 0 1.5mm; color: #3A1216; break-after: avoid; }
+p { margin: 0 0 2.5mm; }
+.lead { font-size: 11.5pt; margin-top: 6mm; }
+ul { margin: 0 0 3mm; padding-left: 5mm; }
+li { margin-bottom: 1mm; }
+code, .mono { font-family: Consolas, "Cascadia Mono", monospace; font-size: 9pt; background: #FBF7F1; border: 0.25mm solid #EADFD2; border-radius: 1mm; padding: 0 1mm; }
+
+table { width: 100%; border-collapse: collapse; margin: 1.5mm 0 4mm; font-size: 9.5pt; break-inside: auto; }
+th { text-align: left; background: #FBF7F1; color: #5A1C21; font-weight: 600; border-bottom: 0.4mm solid #D4AF37; padding: 1.6mm 2mm; }
+td { border-bottom: 0.25mm solid #EADFD2; padding: 1.6mm 2mm; vertical-align: top; }
+tr { break-inside: avoid; }
+
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; }
+.stat { border: 0.3mm solid #EADFD2; border-radius: 2mm; padding: 3mm; background: #FFFDF9; }
+.stat b { display: block; font-family: Cambria, Georgia, serif; font-size: 18pt; color: #7A1F24; line-height: 1.1; }
+.stat span { font-size: 8.5pt; color: #6F5F59; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3mm; margin: 3mm 0 2mm; }
+
+figure { margin: 3mm 0 5mm; break-inside: avoid; }
+figure img { width: 100%; border: 0.3mm solid #D9C9C0; border-radius: 1.5mm; display: block; }
+figcaption { font-size: 8.5pt; color: #6F5F59; margin-top: 1.2mm; }
+.callout { border-left: 1.2mm solid #D4AF37; background: #FBF7F1; padding: 2.5mm 3.5mm; margin: 3mm 0; break-inside: avoid; }
+.muted { color: #6F5F59; }
+.next { border: 0.4mm solid #7A1F24; border-radius: 2mm; padding: 3mm 4mm; margin-top: 6mm; break-inside: avoid; }
+.next h3 { margin-top: 0; color: #7A1F24; }

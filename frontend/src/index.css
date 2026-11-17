@@ -1,0 +1,5 @@
+@import "tailwindcss";
+
+/* Phase 1 placeholder look. Phase 2 replaces this with the full Kavach theme. */
+html, body, #root { height: 100%; }
+body { margin: 0; background: #120A0B; color: #F4ECE6; font-family: system-ui, "Segoe UI", "Nirmala UI", sans-serif; }
