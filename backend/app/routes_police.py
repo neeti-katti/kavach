@@ -16,16 +16,17 @@ from pydantic import BaseModel, Field
 
 from . import audit, vault
 from .allocation import OPEN_STATUSES, assign, check_escalations, open_case_count
-from .auth import require_roles
+from .camera import camera_required
 from .config import REVEAL_SECONDS
 from .db import db_dep, now_iso
 from .intake import tokenize
 from .security import note_wrong_case, trip_canary
 
 router = APIRouter(prefix="/api/police", tags=["police"])
-police = require_roles("officer", "supervisor")
-officer_only = require_roles("officer")
-supervisor_only = require_roles("supervisor")
+# Every police endpoint needs a live camera heartbeat from the same session (see camera.py).
+police = camera_required("officer", "supervisor")
+officer_only = camera_required("officer")
+supervisor_only = camera_required("supervisor")
 
 REVEALABLE = {
     "name": "Survivor's name",

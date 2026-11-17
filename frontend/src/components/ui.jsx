@@ -119,13 +119,22 @@ export function EmptyState({ icon: Icon = Info, title, children, action }) {
 
 export function Modal({ open, title, children, onClose, actions }) {
   const panel = useRef(null)
+  // Keep the latest close handler in a ref: parents pass a new function on every render (every keystroke), and
+  // re-running the effect below for each one used to steal focus from the field being typed in.
+  const closeRef = useRef(onClose)
+  closeRef.current = onClose
   useEffect(() => {
     if (!open) return
-    const onKey = (e) => { if (e.key === 'Escape') onClose?.() }
+    const onKey = (e) => { if (e.key === 'Escape') closeRef.current?.() }
     window.addEventListener('keydown', onKey)
-    panel.current?.querySelector('button, input, textarea, select')?.focus()
     return () => window.removeEventListener('keydown', onKey)
-  }, [open, onClose])
+  }, [open])
+  useEffect(() => {
+    if (!open) return
+    // Focus once, when the dialog opens: the first field if there is one, otherwise the first button.
+    const first = panel.current?.querySelector('textarea, input, select') ?? panel.current?.querySelector('button')
+    first?.focus()
+  }, [open])
   if (!open) return null
   return (
     <div className="fixed inset-0 z-[90] grid place-items-center bg-black/65 p-6 backdrop-blur-sm" onMouseDown={onClose}>

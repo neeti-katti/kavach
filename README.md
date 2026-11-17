@@ -86,13 +86,23 @@ Other officers and supervisors are listed on the sign-in screen under "Demo acco
 ## The 7-minute demo
 
 1. **Hook (30 s).** In December 2024 a police website leaked a survivor's FIR; the Madras High Court ordered ₹25 lakh compensation. Kavach makes that leak impossible.
-2. **Survivor files (1 min).** Sign in as the survivor. File a complaint. Switch to ಕನ್ನಡ, press "Fill sample details (demo)", then "Upload a photo" and "Use a sample page in ಕನ್ನಡ (demo)". OCR reads the page beside the photo; tick the check and review: "What your officer will see" shows "Survivor A". Send. Press Esc to show quick exit.
+2. **Survivor files (1 min).** Sign in as the survivor and start a complaint. The first step asks for a photo of her written page: press "Sample page: ಕನ್ನಡ (demo)" (or upload `samples/complaint-hi.png`). The page is read on the device in Kannada, Hindi or English, the language is detected, and her name, age, father, school, incident date and place are filled in for her to check. Review: "What your officer will see" shows "Survivor A". Send. Press Esc to show quick exit.
 3. **Allocation (30 s).** The new case goes straight to Insp. Kavitha Rao: a woman officer trained for child cases.
-4. **Officer (1 min).** Sign in as `kavitha.rao`, open `KV-2026-BLR-0007`. Call survivor (masked). Request "Survivor's name" for "Record her statement": it opens for 60 seconds under a watermark. Start investigation, file the final report: the identity is sealed.
+4. **Officer (1 min).** Sign in as `kavitha.rao` and allow the camera: nothing loads until it is on. Open `KV-2026-BLR-0007`. Call survivor (masked). Request "Survivor's name" for "Record her statement": it opens for 60 seconds under a watermark. Hold a phone up to the screen (or press "Simulate a phone (demo)"): the screen blanks and the security monitor gets a camera alert. Start investigation, file the final report: the identity is sealed.
 5. **Public copy (1.5 min).** Choose "Public copy": name-only redaction scores 45 and is blocked; Kavach scores 0. Release, then "Print or save as PDF". Copy text out of the PDF: nothing identifying.
 6. **Honeypot (1 min).** Sign in as `anita.desai` in a second window. In the first, sign in as `rohit.sharma` and open `http://localhost:5173/police/cases/KV-2026-BLR-0003`: he is thrown out and locked; the monitor turns red. Then run `curl http://localhost:5173/api/admin/export-all`: blocked and alerted.
 7. **Numbers and limits (1 min).** Show the evaluation table below and the limits.
 8. **Close (30 s).** What a pilot at one police station would need.
+
+## Camera guard
+
+Officers and supervisors must keep their webcam on while using Kavach. In the browser, a small object detector
+(TensorFlow.js COCO-SSD, in a background worker) looks for a phone pointed at the screen a few times a second; while
+one is in view, and for 3 seconds after, the whole screen is blanked and the security admin gets an alert. A covered
+lens also blanks the screen. If the camera is blocked or turns off, no case information is shown, and the server
+itself refuses police data to any session that has not reported "camera on" in the last 45 seconds. Video is never
+uploaded or recorded; only "camera on" and short event notes reach the server. The security admin and survivors are
+not asked for a camera.
 
 ## Measured
 
@@ -120,5 +130,9 @@ Encryption keys live in `backend/keys/` and the database in `backend/data/`; nei
   and Kavach never claims zero risk.
 - OCR runs in the browser but downloads its engine and language data from a public CDN; handwriting is weak.
 - Calls, SMS and OTP are simulated. No translation.
+- The camera guard is a deterrent, not proof: detection runs in the officer's own browser, so a determined insider
+  with developer tools could fake it, and a phone held at an odd angle or far away can be missed. The detector model
+  downloads from Google's public model storage on first use; on a computer without a GPU each check takes a few
+  seconds, so detection is slower there.
 - A blocked client is its address plus its browser signature, so one probe does not lock out everyone behind a shared
   connection. A determined attacker can change the signature; account lock-outs and rate limits still apply.

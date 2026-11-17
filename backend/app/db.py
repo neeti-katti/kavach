@@ -144,7 +144,7 @@ CREATE TABLE IF NOT EXISTS audit_log (
 CREATE TABLE IF NOT EXISTS alerts (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
   ts          TEXT NOT NULL,
-  kind        TEXT NOT NULL CHECK (kind IN ('canary','decoy','honey_login','idor','rate_limit')),
+  kind        TEXT NOT NULL CHECK (kind IN ('canary','decoy','honey_login','idor','rate_limit','camera')),
   severity    TEXT NOT NULL CHECK (severity IN ('low','medium','high','critical')),
   actor_id    INTEGER,
   ip          TEXT,
@@ -220,3 +220,31 @@ def init_schema() -> None:
             existing = {r[1] for r in conn.execute(f"PRAGMA table_info({table})")}
             if column not in existing:
                 conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {kind}")
+        _allow_camera_alerts(conn)
+
+
+def _allow_camera_alerts(conn: sqlite3.Connection) -> None:
+    """SQLite cannot change a CHECK constraint in place, so older databases get the alerts table rebuilt once."""
+    sql = conn.execute("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'alerts'").fetchone()[0]
+    if "'camera'" in sql:
+        return
+    conn.executescript("""
+        BEGIN;
+        CREATE TABLE alerts_new (
+          id          INTEGER PRIMARY KEY AUTOINCREMENT,
+          ts          TEXT NOT NULL,
+          kind        TEXT NOT NULL CHECK (kind IN ('canary','decoy','honey_login','idor','rate_limit','camera')),
+          severity    TEXT NOT NULL CHECK (severity IN ('low','medium','high','critical')),
+          actor_id    INTEGER,
+          ip          TEXT,
+          detail      TEXT,
+          resolved    INTEGER NOT NULL DEFAULT 0,
+          target      TEXT,
+          ua          TEXT
+        );
+        INSERT INTO alerts_new(id, ts, kind, severity, actor_id, ip, detail, resolved, target, ua)
+          SELECT id, ts, kind, severity, actor_id, ip, detail, resolved, target, ua FROM alerts;
+        DROP TABLE alerts;
+        ALTER TABLE alerts_new RENAME TO alerts;
+        COMMIT;
+    """)

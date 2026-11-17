@@ -20,6 +20,8 @@ export async function api(path, { method = 'GET', body } = {}) {
   let data = null
   try { data = await res.json() } catch { /* empty body */ }
   if (!res.ok) {
+    // Police data needs a recent camera heartbeat. Ask the camera guard to send one now; the page can retry after.
+    if (res.status === 428) window.dispatchEvent(new Event('kavach:camera-check'))
     // A tripwire can end a session or lock an account mid-use: drop the token and go back to sign-in with a reason.
     if ((res.status === 401 || res.status === 423) && token && !path.startsWith('/auth/')) {
       setToken(null)

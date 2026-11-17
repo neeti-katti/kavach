@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { ROLE_HOME, useAuth } from './auth'
+import { CameraGuard } from './components/CameraGuard'
 import StaffShell from './layouts/StaffShell'
 import SurvivorShell from './layouts/SurvivorShell'
 import Login from './pages/Login'
@@ -37,7 +38,7 @@ export default function App() {
         <Route path="status" element={<ComplaintStatus />} />
       </Route>
 
-      <Route path="/police" element={<RequireRole roles={['officer', 'supervisor']}><StaffShell area="police" /></RequireRole>}>
+      <Route path="/police" element={<RequireRole roles={['officer', 'supervisor']}><CameraGuard><StaffShell area="police" /></CameraGuard></RequireRole>}>
         <Route index element={<PoliceOverview />} />
         <Route path="cases" element={<Cases />} />
         <Route path="cases/:caseId" element={<CaseSheet />} />
@@ -48,7 +49,7 @@ export default function App() {
         <Route path="approvals" element={<Approvals />} />
       </Route>
 
-      <Route path="/print/copy/:copyId" element={<RequireRole roles={['officer', 'supervisor']}><PrintCopy /></RequireRole>} />
+      <Route path="/print/copy/:copyId" element={<RequireRole roles={['officer', 'supervisor']}><CameraGuard><PrintCopy /></CameraGuard></RequireRole>} />
 
       <Route path="/security" element={<RequireRole roles={['security']}><StaffShell area="security" /></RequireRole>}>
         <Route index element={<SecurityOverview />} />

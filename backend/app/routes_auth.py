@@ -5,7 +5,7 @@ import sqlite3
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
-from . import audit, crypto
+from . import audit, camera, crypto
 from .auth import (DUMMY_HASH, consume_challenge, create_session, current_user, end_session, new_challenge,
                    public_user, verify_password)
 from .config import DEMO_MODE, DEMO_STAFF_PASSWORD, DEMO_SURVIVOR_PHONE
@@ -91,6 +91,7 @@ def me(user: dict = Depends(current_user), db: sqlite3.Connection = Depends(db_d
 @router.post("/logout")
 def logout(request: Request, user: dict = Depends(current_user), db: sqlite3.Connection = Depends(db_dep, scope="function")):
     end_session(db, request)
+    camera.forget(request)
     audit.log(db, "logout", actor=user)
     return {"ok": True}
 

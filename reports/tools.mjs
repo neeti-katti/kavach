@@ -11,12 +11,12 @@ const CHROME = process.env.CHROME || 'C:\\Program Files\\Google\\Chrome\\Applica
 const CALL_TIMEOUT_MS = 90_000
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
-async function launch() {
+async function launch(extraFlags = []) {
   // A fresh port each run, so a leftover Chrome from an earlier run can never be picked up by mistake.
   const PORT = 9400 + Math.floor(Math.random() * 500)
   const profile = mkdtempSync(join(tmpdir(), 'kv-chrome-'))
-  const proc = spawn(CHROME, ['--headless=new', '--disable-gpu', '--hide-scrollbars', `--remote-debugging-port=${PORT}`,
-    `--user-data-dir=${profile}`, '--no-first-run', '--no-default-browser-check', 'about:blank'], { stdio: 'ignore' })
+  const proc = spawn(CHROME, ['--headless=new', ...(extraFlags.some((f) => f.startsWith('--use-angle')) ? [] : ['--disable-gpu']), '--hide-scrollbars', `--remote-debugging-port=${PORT}`,
+    `--user-data-dir=${profile}`, '--no-first-run', '--no-default-browser-check', ...extraFlags, 'about:blank'], { stdio: 'ignore' })
   let target
   for (let i = 0; i < 75 && !target; i++) {
     await sleep(200)
@@ -73,7 +73,7 @@ async function shots(jobsPath) {
   const jobs = JSON.parse(readFileSync(jobsPath, 'utf8'))
   const outDir = resolve(dirname(jobsPath), jobs.outDir)
   mkdirSync(outDir, { recursive: true })
-  const { send, close } = await launch()
+  const { send, close } = await launch(jobs.flags ?? [])
   try {
     for (const s of jobs.shots) {
       const width = s.width ?? 1440
@@ -109,6 +109,12 @@ async function shots(jobsPath) {
       // Optional scripted flow: fill forms, upload files, wait for conditions, take screenshots along the way.
       for (const st of s.steps ?? []) {
         if (st.eval) { await evaluate(st.eval); await sleep(st.after ?? 600) }
+        if (st.type) {
+          // Real typing, one character at a time, into the element the page has focused (or the one named).
+          if (st.type.selector) await evaluate(`document.querySelector(${JSON.stringify(st.type.selector)}).focus()`)
+          for (const ch of st.type.text) { await send('Input.insertText', { text: ch }); await sleep(st.type.delay ?? 15) }
+          await sleep(300)
+        }
         if (st.upload) {
           const { root } = await send('DOM.getDocument', { depth: 0 })
           const { nodeId } = await send('DOM.querySelector', { nodeId: root.nodeId, selector: st.upload.selector })

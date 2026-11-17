@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Ban, Check, FileWarning, KeyRound, Radar, Siren, Waves } from 'lucide-react'
+import { Ban, Camera, Check, FileWarning, KeyRound, Radar, Siren, Waves } from 'lucide-react'
 import { api } from '../../api'
 import { Button, EmptyState, StatusPill } from '../../components/ui'
 import { fmtTime } from '../police/common'
@@ -10,6 +10,7 @@ export const KIND = {
   honey_login: { label: 'Honey credentials used', icon: KeyRound },
   idor: { label: 'Wrong-case attempt', icon: Ban },
   rate_limit: { label: 'Request flood', icon: Waves },
+  camera: { label: 'Camera guard', icon: Camera },
 }
 export const SEVERITY = { critical: 'alert', high: 'danger', medium: 'warn', low: 'neutral' }
 

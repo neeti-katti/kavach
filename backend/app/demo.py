@@ -27,7 +27,10 @@ def call(path, body=None, token=None):
 
 def login(username=None, phone=None):
     s = call("/auth/survivor/start", {"phone": phone}) if phone else call("/auth/staff/login", {"username": username, "password": "kavach@123"})
-    return call("/auth/verify", {"challenge_id": s["challenge_id"], "code": s["demo_code"]})["token"]
+    v = call("/auth/verify", {"challenge_id": s["challenge_id"], "code": s["demo_code"]})
+    if v["user"]["role"] in ("officer", "supervisor"):
+        call("/police/camera/heartbeat", {"detector": "ready"}, v["token"])  # police endpoints need the camera on
+    return v["token"]
 
 
 CHILD = {

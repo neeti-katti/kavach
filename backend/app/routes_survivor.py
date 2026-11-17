@@ -13,11 +13,12 @@ from typing import Literal
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
-from . import audit, vault
+from . import audit, crypto, vault
 from .allocation import allocate
 from .auth import require_roles
 from .security import trip_canary
 from .db import db_dep, now_iso
+from .extract import extract
 from .intake import detect_language, next_case_id, station_for_pincode, tokenize
 
 router = APIRouter(prefix="/api/survivor", tags=["survivor"])
@@ -103,6 +104,20 @@ def _public_case(db: sqlite3.Connection, row: sqlite3.Row) -> dict:
         "created_at": row["created_at"],
         "updated_at": row["updated_at"],
     }
+
+
+class ExtractRequest(BaseModel):
+    text: str = Field(min_length=1, max_length=20000)
+
+
+@router.post("/extract")
+def extract_fields(body: ExtractRequest, user: dict = Depends(survivor_only)):
+    """Fill the form from her own complaint page. Her phone comes from her sign-in, never from numbers in the text.
+    Nothing is stored; she checks every field before sending."""
+    out = extract(body.text)
+    if user.get("phone_enc"):
+        out["identity"]["phone"] = crypto.decrypt_text(user["phone_nonce"], user["phone_enc"], f"user-phone:{user['phone_hash']}")
+    return out
 
 
 @router.post("/preview")

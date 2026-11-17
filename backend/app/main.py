@@ -9,6 +9,7 @@ from fastapi.responses import FileResponse, JSONResponse
 
 from .config import FRONTEND_DIST, LOAD_DEMO_ON_START
 from .db import get_db, init_schema
+from .camera import router as camera_router
 from .routes_auth import demo_router, router as auth_router
 from .routes_copies import router as copies_router
 from .routes_decoys import router as decoys_router
@@ -64,6 +65,7 @@ async def guard(request: Request, call_next):
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "no-referrer"
+    response.headers["Permissions-Policy"] = "camera=(self), microphone=(), geolocation=()"
     if path.startswith("/api"):
         response.headers["Cache-Control"] = "no-store"
     return response
@@ -72,6 +74,7 @@ async def guard(request: Request, call_next):
 app.include_router(auth_router)
 app.include_router(demo_router)
 app.include_router(survivor_router)
+app.include_router(camera_router)
 app.include_router(police_router)
 app.include_router(copies_router)
 app.include_router(security_router)
