@@ -88,11 +88,45 @@ async function shots(jobsPath) {
       }
       await send('Page.navigate', { url: jobs.base + s.path })
       await sleep(s.wait ?? 2000)
-      if (s.eval) await send('Runtime.evaluate', { expression: s.eval, awaitPromise: true })
-      if (s.eval) await sleep(800)
-      const shot = await send('Page.captureScreenshot', { format: 'png' })
-      writeFileSync(join(outDir, s.file), Buffer.from(shot.data, 'base64'))
-      console.log('shot', s.file, `${width}x${height}`)
+      const capture = async (file, full) => {
+        if (full) {
+          const m = await send('Page.getLayoutMetrics')
+          const h = Math.min(3200, Math.ceil(m.cssContentSize?.height ?? m.contentSize.height))
+          await send('Emulation.setDeviceMetricsOverride', { width, height: Math.max(height, h), deviceScaleFactor: 1, mobile: Boolean(s.mobile) })
+          await sleep(500)
+        }
+        const shot = await send('Page.captureScreenshot', { format: 'png' })
+        writeFileSync(join(outDir, file), Buffer.from(shot.data, 'base64'))
+        if (full) await send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: Boolean(s.mobile) })
+        console.log('shot', file)
+      }
+      const evaluate = async (expression) => {
+        const r = await send('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true })
+        if (r.exceptionDetails) throw new Error(`step failed: ${r.exceptionDetails.exception?.description ?? r.exceptionDetails.text}`)
+        return r.result?.value
+      }
+      if (s.eval) { await evaluate(s.eval); await sleep(800) }
+      // Optional scripted flow: fill forms, upload files, wait for conditions, take screenshots along the way.
+      for (const st of s.steps ?? []) {
+        if (st.eval) { await evaluate(st.eval); await sleep(st.after ?? 600) }
+        if (st.upload) {
+          const { root } = await send('DOM.getDocument', { depth: 0 })
+          const { nodeId } = await send('DOM.querySelector', { nodeId: root.nodeId, selector: st.upload.selector })
+          await send('DOM.setFileInputFiles', { nodeId, files: [resolve(dirname(jobsPath), st.upload.file)] })
+        }
+        if (st.waitFor) {
+          const until = Date.now() + (st.timeout ?? 120_000)
+          while (!(await evaluate(st.waitFor))) {
+            if (Date.now() > until) throw new Error(`timed out waiting for: ${st.waitFor}`)
+            await sleep(500)
+          }
+        }
+        if (st.wait) await sleep(st.wait)
+        if (st.navigate) { await send('Page.navigate', { url: jobs.base + st.navigate }); await sleep(st.after ?? 2000) }
+        if (st.log) console.log(st.log, JSON.stringify(await evaluate(st.log)))
+        if (st.shot) await capture(st.shot, st.full)
+      }
+      if (s.file) await capture(s.file, s.full)
     }
   } finally {
     await close()

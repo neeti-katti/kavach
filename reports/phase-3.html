@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Kavach · Phase 3 Report: Survivor portal</title>
+<link rel="stylesheet" href="report.css">
+</head>
+<body>
+<header class="cover">
+  <div class="logo"><img src="../frontend/public/brand/kavach-logo.webp" alt="Kavach logo"></div>
+  <div>
+    <p class="eyebrow">Build report · Phase 3 of 7</p>
+    <h1>Survivor portal: complaint form, photo OCR and tracker</h1>
+    <p class="meta">17 November 2026 · Time box 15 minutes · <span class="chip done">Complete</span></p>
+  </div>
+</header>
+<div class="tricolour"></div>
+
+<main class="page">
+  <p class="lead">A survivor can now file a complaint in three steps, either by typing it or by uploading a photo of a written page that is read in her browser. Before she sends it, she sees exactly what her officer will read, with her name, family, school and numbers replaced. Two complaints were filed end to end: a typed one in English and a scanned one in Hindi.</p>
+
+  <div class="stats">
+    <div class="stat"><b>2 / 2</b><span>test complaints filed end to end</span></div>
+    <div class="stat"><b>3</b><span>languages in the form: English, Hindi, Kannada</span></div>
+    <div class="stat"><b>10–11</b><span>values sealed in the vault per case</span></div>
+    <div class="stat"><b>0</b><span>names or numbers readable in the database file</span></div>
+  </div>
+
+  <h2>The three steps</h2>
+  <h3>1. About you</h3>
+  <figure><img src="img/p3-step1.png" alt="Step 1"><figcaption>Identity fields, with a note that only she sees them and that an officer sees one only for a specific task, on record. Everything entered here is tagged as identity at the source.</figcaption></figure>
+  <div class="grid2">
+    <figure><img src="img/p3-errors.png" alt="Validation messages"><figcaption>Clear messages if something is missing or wrong, in her language.</figcaption></figure>
+    <figure><img src="img/p3-sent.png" alt="Complaint sent"><figcaption>After sending: the case number to keep, and a link to the tracker. Her details are wiped from the page's memory.</figcaption></figure>
+  </div>
+
+  <h3>2. What happened: typed or photographed</h3>
+  <figure><img src="img/p3-ocr-hi.png" alt="Photo OCR in Hindi"><figcaption>Hindi interface, photo mode. The photo is read inside the browser (Tesseract, Hindi + English) and shown next to the editable text. She must tick "I have checked the text" before going on. Note the two misreads she would correct: "10" read as "70", and a phone number with a digit missing.</figcaption></figure>
+
+  <h3>3. Review and confirm</h3>
+  <figure><img src="img/p3-review.png" alt="Review in English"><figcaption>Her full details on the left, and on the right exactly what police will read: "Survivor A", "Survivor A's father", "Survivor A's mother", and the school, phone and street hidden. The complaint is marked urgent.</figcaption></figure>
+
+  <h2>Tracker</h2>
+  <figure><img src="img/p3-status.png" alt="Complaint tracker"><figcaption>Both complaints with their case numbers, five stages, the station and an urgent badge. The officer line fills in once Phase 4 assigns one.</figcaption></figure>
+  <div class="grid2">
+    <figure><img src="img/p3-review-hi.png" alt="Review in Hindi"><figcaption>Review step in Hindi, after OCR.</figcaption></figure>
+    <figure><img src="img/p3-status-kn.png" alt="Tracker in Kannada"><figcaption>The tracker in Kannada.</figcaption></figure>
+  </div>
+
+  <h2>What police get, and what stays sealed</h2>
+  <table>
+    <tr><th style="width:32%">She typed</th><th>Police text shows</th><th>The original</th></tr>
+    <tr><td>Name, alias, any part of it ("Kavya")</td><td>Survivor A</td><td rowspan="6">Sealed in the vault, each value encrypted on its own</td></tr>
+    <tr><td>Father's, mother's, guardian's name</td><td>Survivor A's father / mother / guardian</td></tr>
+    <tr><td>School, college or workplace, or part of it</td><td>school / workplace hidden</td></tr>
+    <tr><td>Home address, or a part of it such as the street</td><td>address hidden</td></tr>
+    <tr><td>Her phone, email, pin code</td><td>phone / email / pin code hidden</td></tr>
+    <tr><td>Any other phone number, Aadhaar-style ID, or long number</td><td>phone / ID number / number hidden</td></tr>
+    <tr><td>Age</td><td>"Minor (under 18)" or "Adult" only</td><td>Sealed</td></tr>
+    <tr><td>Narrative, place and accused description as written, OCR text, photo</td><td>The tokenised versions above</td><td>Sealed (photo encrypted as a file)</td></tr>
+  </table>
+  <p class="muted">The case also records the area ("Hosahalli, Bengaluru"), the station chosen from the incident pin code, the category (child victim if under 18), language, source, and the urgent flag. Case numbers follow the station: <code>KV-2026-BLR-0007</code>, <code>KV-2026-DEL-0005</code>. They skip past the hidden decoy numbers, so decoys sit among real cases.</p>
+
+  <h2>Found and fixed during testing</h2>
+  <div class="callout">
+    <p><b>OCR dropped a digit from a phone number.</b> In the Hindi test page, OCR read the father's 10-digit number as 9 digits. That no longer looked like a phone number, so it would have reached police in the clear if she had not corrected it.</p>
+    <p style="margin:0"><b>Fix:</b> any run of 8 or more digits is now hidden as "number hidden". Dates such as 2026-11-12 and case numbers stay readable. The test was re-run on a fresh database, and the fragment is now hidden.</p>
+  </div>
+
+  <h2>Checks run</h2>
+  <table>
+    <tr><th>Check</th><th>Result</th><th style="width:14%">Status</th></tr>
+    <tr><td>Typed English complaint, filed through the real form in headless Chrome</td><td>Case <code>KV-2026-BLR-0007</code>, child victim, urgent, Bengaluru South</td><td><span class="chip done">Pass</span></td></tr>
+    <tr><td>Hindi photo complaint: upload, OCR, check, review, send</td><td>Case <code>KV-2026-DEL-0005</code>, Hindi, from a scan, New Delhi Central</td><td><span class="chip done">Pass</span></td></tr>
+    <tr><td>Hindi OCR accuracy on the synthetic page</td><td>Near word-perfect; 2 digit errors that the survivor can correct</td><td><span class="chip warn">Noted</span></td></tr>
+    <tr><td>"What your officer will see" preview</td><td>Name, father, mother, school, phone, address and the garbled number all replaced</td><td><span class="chip done">Pass</span></td></tr>
+    <tr><td>Another survivor asks for this case by number</td><td>"Not found" (the API does not confirm it exists)</td><td><span class="chip done">Pass</span></td></tr>
+    <tr><td>Survivor asks for a decoy case by number</td><td>"Not found"</td><td><span class="chip done">Pass</span></td></tr>
+    <tr><td>Empty or invalid form (bad pin code, short narrative)</td><td>Blocked with messages in her language; the API also rejects them</td><td><span class="chip done">Pass</span></td></tr>
+    <tr><td>Database file searched for 9 names, numbers and address parts from both complaints</td><td>None found</td><td><span class="chip done">Pass</span></td></tr>
+    <tr><td>Scan stored encrypted; audit entries contain no personal data; hash chain</td><td>Scan sealed (86 KB); entries list source, language, station only; chain intact</td><td><span class="chip done">Pass</span></td></tr>
+  </table>
+
+  <h2>Not done yet, and limits</h2>
+  <ul>
+    <li>No officer is assigned yet; cases wait at "Submitted" until Phase 4's allocation.</li>
+    <li>Kannada OCR is wired in but was not tested end to end in this phase; English and Hindi typed text and Hindi OCR were.</li>
+    <li>Handwriting was not tested. Tesseract is weak on handwriting, so printed or very neat pages work best.</li>
+    <li>OCR runs in the browser, but the OCR engine and language data are downloaded from a public CDN each time (nothing is cached on her phone). This needs internet; the photo itself is never uploaded for reading.</li>
+    <li>No translation: the officer will see the complaint in the language she wrote it in.</li>
+    <li>Name matching is exact-text: a nickname or a different spelling she did not type in the form is not caught at intake. Phase 5's redaction engine adds broader detection before any public copy.</li>
+  </ul>
+
+  <div class="next">
+    <h3>Next: Phase 4, allocation and police side</h3>
+    <p>Route each case to an on-duty woman officer at the right station with the fewest open cases, then build the officer's case list and case sheet showing "Survivor A", masked calls, time-boxed reveal requests with a watermark, submit-and-seal, and the supervisor's allocation and approval screens.</p>
+  </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,45 @@
+{
+  "base": "http://localhost:5173",
+  "outDir": "img",
+  "shots": [
+    {
+      "path": "/survivor/new", "login": { "phone": "9000000001" }, "wait": 2500,
+      "steps": [
+        { "eval": "[...document.querySelectorAll('button')].find(b => b.textContent.trim() === 'हिं').click(); window.__set = (id, v) => { const el = document.getElementById(id); if (!el) throw new Error('missing ' + id); const proto = el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype; Object.getOwnPropertyDescriptor(proto, 'value').set.call(el, v); el.dispatchEvent(new Event('input', { bubbles: true })); }; window.__btn = (txt) => { const b = [...document.querySelectorAll('button')].find(b => b.textContent.trim() === txt); if (!b) throw new Error('missing button ' + txt); b.click(); }; true" },
+        { "eval": "__set('f-name', 'पूजा शर्मा'); __set('f-age', '22'); __set('f-phone', '9811122233'); __set('f-address', 'बी-41, देव नगर, करोल बाग'); __set('f-pincode', '110005'); __set('f-father', 'रमेश शर्मा'); true" },
+        { "eval": "__btn('आगे'); true", "after": 900 },
+        { "eval": "__set('f-date', '2026-10-10'); __set('f-time', '19:00'); __set('f-locality', 'करोल बाग'); __set('f-incident-pin', '110005'); __set('f-place', 'बाज़ार के पीछे वाली गली'); __set('f-accused', 'लगभग 30 साल का आदमी, नीली कमीज़ पहने हुए'); __btn('फ़ोटो अपलोड करें'); true", "after": 900 },
+        { "upload": { "selector": "#f-scan", "file": "../samples/complaint-hi.png" } },
+        { "wait": 1500, "shot": "p3-ocr-reading.png" },
+        { "waitFor": "!!document.getElementById('f-ocr') && document.getElementById('f-ocr').value.length > 20", "timeout": 240000 },
+        { "wait": 600, "shot": "p3-ocr-hi.png", "full": true, "log": "document.getElementById('f-ocr').value" },
+        { "eval": "document.getElementById('f-ocr-ok').click(); __btn('आगे'); true", "after": 2000 },
+        { "shot": "p3-review-hi.png", "full": true, "log": "document.querySelector('mark') ? [...document.querySelectorAll('mark')].map(m => m.textContent) : 'no tokens'" },
+        { "eval": "document.getElementById('f-confirm').click(); __btn('शिकायत भेजें'); true" },
+        { "waitFor": "document.body.textContent.includes('KV-2026-')", "timeout": 30000 },
+        { "wait": 600, "shot": "p3-sent-hi.png" }
+      ]
+    },
+    {
+      "path": "/survivor/new", "login": { "phone": "9000000001" }, "wait": 2500,
+      "steps": [
+        { "eval": "window.__set = (id, v) => { const el = document.getElementById(id); if (!el) throw new Error('missing ' + id); const proto = el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype; Object.getOwnPropertyDescriptor(proto, 'value').set.call(el, v); el.dispatchEvent(new Event('input', { bubbles: true })); }; window.__btn = (txt) => { const b = [...document.querySelectorAll('button')].find(b => b.textContent.trim() === txt); if (!b) throw new Error('missing button ' + txt); b.click(); }; __btn('Next'); true", "after": 700 },
+        { "shot": "p3-errors.png", "log": "[...document.querySelectorAll('p.text-xs')].map(p => p.textContent).filter(t => t.length)" },
+        { "eval": "__set('f-name', 'Kavya Rao'); __set('f-age', '16'); __set('f-phone', '9876543210'); __set('f-address', '12, 4th Cross, Hosahalli Main Road'); __set('f-pincode', '560041'); __set('f-father', 'Suresh Rao'); __set('f-mother', 'Lata Rao'); __set('f-school', 'Government High School, Hosahalli'); true" },
+        { "shot": "p3-step1.png" },
+        { "eval": "__btn('Next'); true", "after": 900 },
+        { "eval": "__set('f-date', '2026-11-12'); __set('f-time', '18:30'); __set('f-locality', 'Hosahalli'); __set('f-incident-pin', '560041'); __set('f-place', 'Near the bus stop on Hosahalli Main Road'); __set('f-accused', 'A man of about 30 who runs the phone repair shop near the school. Medium build, beard.'); __set('f-narrative', 'On the evening of 12 November, Kavya was walking home from Government High School, Hosahalli. The man who runs the phone repair shop near the school followed her to the bus stop and grabbed her. She broke free and ran. Her father Suresh came when she called him on 9876543210. Her mother Lata Rao took her home.'); document.getElementById('f-urgent').click(); true" },
+        { "shot": "p3-step2.png", "full": true },
+        { "eval": "__btn('Next'); true", "after": 2000 },
+        { "shot": "p3-review.png", "full": true },
+        { "eval": "document.getElementById('f-confirm').click(); __btn('Send complaint'); true" },
+        { "waitFor": "document.body.textContent.includes('KV-2026-')", "timeout": 30000 },
+        { "wait": 600, "shot": "p3-sent.png" },
+        { "navigate": "/survivor/status", "after": 2500 },
+        { "shot": "p3-status.png", "full": true },
+        { "eval": "[...document.querySelectorAll('button')].find(b => b.textContent.trim() === 'ಕ').click(); true", "after": 800 },
+        { "shot": "p3-status-kn.png" }
+      ]
+    }
+  ]
+}
