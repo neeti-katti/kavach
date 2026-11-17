@@ -191,6 +191,20 @@ def db_dep():
         yield conn
 
 
+# Columns added after Phase 1. Applied on start-up so existing databases keep working.
+MIGRATIONS = [
+    ("cases", "allocation_reason", "TEXT"),
+    ("cases", "accept_by", "TEXT"),
+    ("cases", "escalated", "INTEGER NOT NULL DEFAULT 0"),
+    ("cases", "sealed_at", "TEXT"),
+    ("cases", "report_summary", "TEXT"),
+]
+
+
 def init_schema() -> None:
     with get_db() as conn:
         conn.executescript(SCHEMA)
+        for table, column, kind in MIGRATIONS:
+            existing = {r[1] for r in conn.execute(f"PRAGMA table_info({table})")}
+            if column not in existing:
+                conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {kind}")

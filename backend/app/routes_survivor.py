@@ -14,6 +14,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from . import audit, vault
+from .allocation import allocate
 from .auth import require_roles
 from .db import db_dep, now_iso
 from .intake import detect_language, next_case_id, station_for_pincode, tokenize
@@ -167,6 +168,7 @@ def file_complaint(body: Complaint, user: dict = Depends(survivor_only), db: sql
 
     audit.log(db, "complaint_filed", actor=user, case_id=case_id,
               detail=f"source={body.source} lang={language} urgent={int(body.urgent)} child={int(is_child)} station={station['id']}")
+    allocate(db, case_id)
     row = db.execute("SELECT * FROM cases WHERE id = ?", (case_id,)).fetchone()
     return _public_case(db, row)
 

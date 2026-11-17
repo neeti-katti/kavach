@@ -17,3 +17,7 @@ OTP_TTL_SECONDS = 300
 OTP_MAX_ATTEMPTS = 5
 
 CASE_YEAR = 2026
+
+# Demo timings (real deployment: 2 hours to accept, 30 minutes per reveal).
+ACCEPT_WINDOW_SECONDS = 120
+REVEAL_SECONDS = 60

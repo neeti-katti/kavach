@@ -1,0 +1,55 @@
+{
+  "base": "http://localhost:5173",
+  "outDir": "img",
+  "helpers": "see first step of each job",
+  "shots": [
+    {
+      "path": "/police", "login": { "username": "kavitha.rao" }, "wait": 2500,
+      "steps": [
+        { "shot": "p4-officer-overview.png" },
+        { "navigate": "/police/cases/KV-2026-BLR-0007", "after": 2500 },
+        { "shot": "p4-sheet-new.png", "full": true },
+        { "eval": "window.__set = (id, v) => { const el = document.getElementById(id); if (!el) throw new Error('missing ' + id); const proto = el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : el.tagName === 'SELECT' ? HTMLSelectElement.prototype : HTMLInputElement.prototype; Object.getOwnPropertyDescriptor(proto, 'value').set.call(el, v); el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); }; window.__btn = (txt) => { const b = [...document.querySelectorAll('button')].find(b => b.textContent.trim() === txt && !b.disabled); if (!b) throw new Error('missing button ' + txt); b.click(); }; window.__row = (label, txt) => { const row = [...document.querySelectorAll('div')].find(d => d.children.length === 2 && d.firstElementChild.textContent.trim() === label); if (!row) throw new Error('missing row ' + label); const b = [...row.querySelectorAll('button')].find(b => b.textContent.trim() === txt); if (!b) throw new Error('missing ' + txt + ' in ' + label); b.click(); }; __btn('Accept case'); true", "after": 1500 },
+        { "eval": "__btn('Call survivor'); true", "after": 1500 },
+        { "shot": "p4-call.png" },
+        { "eval": "__btn('Done'); __row(\"Survivor's name\", 'Request'); true", "after": 800 },
+        { "eval": "__set('rv-reason', 'Recording her statement at the station at 4 pm today'); true", "after": 400 },
+        { "shot": "p4-reveal-request.png" },
+        { "eval": "__btn('Send request'); true", "after": 1500 },
+        { "eval": "__row(\"Survivor's name\", 'Open'); true", "after": 2000 },
+        { "shot": "p4-reveal.png", "log": "document.querySelector('[data-sensitive] p.text-2xl')?.textContent" },
+        { "eval": "__btn('Close now'); __row('School or workplace', 'Request'); true", "after": 800 },
+        { "eval": "__set('rv-task', 'other'); __set('rv-reason', 'Need to inform the school counsellor about support for her'); __btn('Send request'); true", "after": 1500 },
+        { "shot": "p4-sheet-active.png", "full": true }
+      ]
+    },
+    {
+      "path": "/police/approvals", "login": { "username": "prakash.reddy" }, "wait": 2500,
+      "steps": [
+        { "shot": "p4-approvals.png" },
+        { "eval": "[...document.querySelectorAll('button')].find(b => b.textContent.trim() === 'Approve').click(); true", "after": 1500 },
+        { "navigate": "/police/allocation", "after": 2500 },
+        { "shot": "p4-allocation.png" },
+        { "navigate": "/police", "after": 2500 },
+        { "shot": "p4-supervisor-overview.png" }
+      ]
+    },
+    {
+      "path": "/police/cases/KV-2026-BLR-0007", "login": { "username": "kavitha.rao" }, "wait": 2500,
+      "steps": [
+        { "eval": "window.__set = (id, v) => { const el = document.getElementById(id); if (!el) throw new Error('missing ' + id); const proto = el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : el.tagName === 'SELECT' ? HTMLSelectElement.prototype : HTMLInputElement.prototype; Object.getOwnPropertyDescriptor(proto, 'value').set.call(el, v); el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); }; window.__btn = (txt) => { const b = [...document.querySelectorAll('button')].find(b => b.textContent.trim() === txt && !b.disabled); if (!b) throw new Error('missing button ' + txt); b.click(); }; __btn('Mark statement scheduled'); true", "after": 1500 },
+        { "eval": "__btn('Start investigation'); true", "after": 1500 },
+        { "eval": "__btn('File final report'); true", "after": 700 },
+        { "eval": "__set('rp-summary', 'Statement of Kavya recorded on 13 November with her mother Lata Rao present. The accused, who runs the phone repair shop, was identified from CCTV at the bus stop and arrested. Chargesheet to follow.'); true", "after": 500 },
+        { "shot": "p4-report.png" },
+        { "eval": "__btn('File and seal'); true", "after": 2500 },
+        { "shot": "p4-sealed.png", "full": true }
+      ]
+    },
+    {
+      "path": "/police/cases/KV-2026-BLR-0007", "login": { "username": "meena.iyer" }, "wait": 2500,
+      "steps": [ { "shot": "p4-denied.png" }, { "navigate": "/police/cases", "after": 2500 }, { "shot": "p4-cases.png" } ]
+    },
+    { "file": "p4-survivor.png", "path": "/survivor/status", "login": { "phone": "9000000001" }, "wait": 2500, "full": true }
+  ]
+}

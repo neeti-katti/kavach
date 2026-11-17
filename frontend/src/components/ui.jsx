@@ -191,5 +191,5 @@ export function PageHeader({ eyebrow, title, children, actions }) {
 }
 
 export function CaseId({ children }) {
-  return <span className="font-mono text-[13px] tracking-wide text-text">{children}</span>
+  return <span className="font-mono text-[13px] tracking-wide whitespace-nowrap text-text">{children}</span>
 }

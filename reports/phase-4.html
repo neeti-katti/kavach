@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Kavach · Phase 4 Report: Allocation and police side</title>
+<link rel="stylesheet" href="report.css">
+</head>
+<body>
+<header class="cover">
+  <div class="logo"><img src="../frontend/public/brand/kavach-logo.webp" alt="Kavach logo"></div>
+  <div>
+    <p class="eyebrow">Build report · Phase 4 of 7</p>
+    <h1>Allocation and the police side: need-to-know access</h1>
+    <p class="meta">17 November 2026 · Time box 15 minutes · <span class="chip done">Complete</span></p>
+  </div>
+</header>
+<div class="tricolour"></div>
+
+<main class="page">
+  <p class="lead">Every complaint now goes straight to one named officer, a woman officer first and a child-trained officer for a child. That officer works the whole case from a case number and "Survivor A". She calls through a masked number, opens one identity detail for one task for 60 seconds under a watermark, and loses all identity access when she files the final report.</p>
+
+  <div class="stats">
+    <div class="stat"><b>30 / 30</b><span>API checks passed</span></div>
+    <div class="stat"><b>5</b><span>police screens built</span></div>
+    <div class="stat"><b>60 s</b><span>reveal window in the demo (30 min in real use)</span></div>
+    <div class="stat"><b>0</b><span>survivor details in any case sheet or list</span></div>
+  </div>
+
+  <h2>Allocation</h2>
+  <figure><img src="img/p4-allocation.png" alt="Supervisor allocation screen"><figcaption>The supervisor sees every case at the station, who it went to, why, and whether it was accepted. A case not accepted in time shows as escalated.</figcaption></figure>
+  <table>
+    <tr><th style="width:6%">#</th><th>Rule, in order</th></tr>
+    <tr><td>1</td><td>Officers at the station chosen from the incident pin code, on duty and not locked</td></tr>
+    <tr><td>2</td><td>Women officers first (anyone on duty only if no woman officer is)</td></tr>
+    <tr><td>3</td><td>For a child survivor, officers trained for child cases first</td></tr>
+    <tr><td>4</td><td>Fewest open cases, then whoever was assigned longest ago</td></tr>
+    <tr><td>5</td><td>Not accepted within 2 minutes in the demo (2 hours in real use): escalated to the supervisor, who can reassign with a reason</td></tr>
+  </table>
+
+  <h2>The officer's view</h2>
+  <figure><img src="img/p4-officer-overview.png" alt="Officer overview"><figcaption>Officer overview with live counts and the case queue, by case number only.</figcaption></figure>
+  <figure><img src="img/p4-sheet-active.png" alt="Case sheet"><figcaption>The case sheet: the complaint as police see it ("Survivor A", "Survivor A's father", school, phone and street hidden), the allocation reason, the sealed identity panel with one detail open and one waiting for the supervisor, the masked call log and the timeline from the audit log.</figcaption></figure>
+
+  <h3>Opening one detail</h3>
+  <div class="grid2">
+    <figure><img src="img/p4-reveal-request.png" alt="Reveal request"><figcaption>Request: which detail, for which task, and why. Statement, medical examination and court papers open at once; anything else goes to the supervisor.</figcaption></figure>
+    <figure><img src="img/p4-reveal.png" alt="Revealed detail"><figcaption>The detail opens for 60 seconds under a moving watermark with the officer's badge, name and the time. Copy, right-click and printing are blocked, and the view is logged.</figcaption></figure>
+  </div>
+  <div class="grid2">
+    <figure><img src="img/p4-call.png" alt="Masked call"><figcaption>Masked call through a relay number (simulated). The survivor's number never reaches the officer's phone or screen; phone, email and pin code can never be revealed.</figcaption></figure>
+    <figure><img src="img/p4-report.png" alt="File final report"><figcaption>Filing the final report warns that it seals the survivor's identity. The summary the officer writes is cleaned automatically.</figcaption></figure>
+  </div>
+  <figure><img src="img/p4-sealed.png" alt="Sealed case"><figcaption>After filing: sealed, no request buttons, open reveals closed. The officer wrote "Statement of Kavya … her mother Lata Rao"; it is stored as "Statement of Survivor A … her mother Survivor A's mother".</figcaption></figure>
+
+  <h2>The supervisor's view</h2>
+  <div class="grid2">
+    <figure><img src="img/p4-approvals.png" alt="Approvals"><figcaption>Approvals: a non-routine request with its reason, ready to approve or deny.</figcaption></figure>
+    <figure><img src="img/p4-supervisor-overview.png" alt="Supervisor overview"><figcaption>Supervisor overview: open cases, pending approvals and escalations at the station.</figcaption></figure>
+  </div>
+
+  <h2>Access isolation and the survivor's side</h2>
+  <div class="grid2">
+    <figure><img src="img/p4-denied.png" alt="Access denied"><figcaption>Another officer at the same station opens the case's address directly: "Case not available", and the attempt is logged.</figcaption></figure>
+    <figure><img src="img/p4-survivor.png" alt="Survivor tracker"><figcaption>The survivor's tracker now shows her officer's name and each stage as the officer moves the case on.</figcaption></figure>
+  </div>
+
+  <h2>Checks run (API, 30 of 30 passed)</h2>
+  <table>
+    <tr><th>Area</th><th>What was checked</th><th style="width:12%">Status</th></tr>
+    <tr><td>Allocation</td><td>Child case to the child-trained woman officer; adult case to the woman officer with fewer open cases; survivor sees "Officer assigned"</td><td><span class="chip done">Pass</span></td></tr>
+    <tr><td>No identity in police views</td><td>Case list and case sheet contain none of her name, father's name, phone, street or school</td><td><span class="chip done">Pass</span></td></tr>
+    <tr><td>Access isolation</td><td>Another officer at the same station, an officer at another station, and a decoy case number all get "not found"; the security admin cannot open case sheets; each denial is logged</td><td><span class="chip done">Pass</span></td></tr>
+    <tr><td>Accepting and order</td><td>No reveals before accepting; stages cannot be skipped</td><td><span class="chip done">Pass</span></td></tr>
+    <tr><td>Masked call</td><td>Relay number returned; phone can never be revealed</td><td><span class="chip done">Pass</span></td></tr>
+    <tr><td>Reveals</td><td>Routine task opens at once; other tasks wait for the supervisor; only the requesting officer can read it; an expired reveal can no longer be read</td><td><span class="chip done">Pass</span></td></tr>
+    <tr><td>Seal on submission</td><td>Final report seals the case, closes open reveals, blocks new ones, and the report text is cleaned of her identity</td><td><span class="chip done">Pass</span></td></tr>
+    <tr><td>Supervisor powers</td><td>Approve a reveal, reopen a sealed case, reassign with a reason; access moves to the new officer</td><td><span class="chip done">Pass</span></td></tr>
+    <tr><td>Escalation</td><td>A case not accepted in time counts as escalated</td><td><span class="chip done">Pass</span></td></tr>
+  </table>
+  <p class="muted">Also checked in the browser: the full officer, supervisor and survivor flows above, run end to end by script. Fixed along the way: case numbers wrapping in the allocation table, request buttons still shown on a sealed case, a doubled icon, and unlabelled system events in the timeline.</p>
+
+  <h2>Not done yet, and limits</h2>
+  <ul>
+    <li>Calls are simulated; a real deployment needs a telephony provider for number masking.</li>
+    <li>The watermark is visible on screen; invisible per-officer marks in exported files are not part of the plan's 90 minutes.</li>
+    <li>Blocking copy and print stops casual leaks, not a phone camera; the watermark is what traces those.</li>
+    <li>Escalation is checked whenever police screens load rather than by a background timer.</li>
+    <li>Wrong-case attempts are only logged for now; Phase 6 turns them, and any decoy access, into alerts and lock-outs.</li>
+    <li>Public copies and their approvals arrive in Phase 5.</li>
+  </ul>
+
+  <div class="next">
+    <h3>Next: Phase 5, redaction engine and public copy</h3>
+    <p>The six redaction layers (tagged fields, patterns, places and schools in three languages, relation chains, risk score, rebuild from clean text), a side-by-side of name-only redaction against Kavach's, the risk-based release gate, and a printable public copy with no hidden text or metadata.</p>
+  </div>
+</main>
+</body>
+</html>

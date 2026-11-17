@@ -1,11 +1,16 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
-import { ClipboardCheck, Eye, FileCheck, FolderOpen, Lock, Radar, ScrollText, Siren, Users } from 'lucide-react'
+import { FileCheck, Lock, Radar, ScrollText, Siren } from 'lucide-react'
 import { ROLE_HOME, useAuth } from './auth'
 import StaffShell from './layouts/StaffShell'
 import SurvivorShell from './layouts/SurvivorShell'
 import Login from './pages/Login'
 import Placeholder from './pages/Placeholder'
+import Allocation from './pages/police/Allocation'
+import Approvals from './pages/police/Approvals'
+import CaseSheet from './pages/police/CaseSheet'
+import Cases from './pages/police/Cases'
 import PoliceOverview from './pages/police/Overview'
+import Reveals from './pages/police/Reveals'
 import SecurityOverview from './pages/security/Overview'
 import ComplaintStatus from './pages/survivor/ComplaintStatus'
 import NewComplaint from './pages/survivor/NewComplaint'
@@ -32,16 +37,13 @@ export default function App() {
 
       <Route path="/police" element={<RequireRole roles={['officer', 'supervisor']}><StaffShell area="police" /></RequireRole>}>
         <Route index element={<PoliceOverview />} />
-        <Route path="cases" element={<Placeholder eyebrow="Police" title="My cases" icon={FolderOpen} phase={4}
-          description="Your assigned cases by case number, with the redacted case sheet, masked calls and reveal requests." empty="No cases yet" />} />
-        <Route path="reveals" element={<Placeholder eyebrow="Police" title="Reveal requests" icon={Eye} phase={4}
-          description="Ask to see one identity field for one task. Each reveal is time-limited, watermarked and logged." empty="No reveal requests" />} />
+        <Route path="cases" element={<Cases />} />
+        <Route path="cases/:caseId" element={<CaseSheet />} />
+        <Route path="reveals" element={<Reveals />} />
         <Route path="copies" element={<Placeholder eyebrow="Police" title="Public copies" icon={FileCheck} phase={5}
           description="Redacted copies with their risk score, ready to release, waiting for review, or blocked." empty="No public copies yet" />} />
-        <Route path="allocation" element={<Placeholder eyebrow="Supervisor" title="Allocation" icon={Users} phase={4}
-          description="Who each complaint went to and why, with reassignment and escalation." empty="No complaints to allocate" />} />
-        <Route path="approvals" element={<Placeholder eyebrow="Supervisor" title="Approvals" icon={ClipboardCheck} phase={4}
-          description="Reveal requests and medium-risk public copies waiting for your decision." empty="Nothing waiting for approval" />} />
+        <Route path="allocation" element={<Allocation />} />
+        <Route path="approvals" element={<Approvals />} />
       </Route>
 
       <Route path="/security" element={<RequireRole roles={['security']}><StaffShell area="security" /></RequireRole>}>

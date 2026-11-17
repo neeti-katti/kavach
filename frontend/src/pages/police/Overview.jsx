@@ -1,8 +1,11 @@
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowRight, Eye, FileCheck, FileText, FolderOpen, Hourglass, Inbox, KeyRound, Layers, ShieldCheck, Siren, Stamp } from 'lucide-react'
+import { api } from '../../api'
 import { useAuth } from '../../auth'
 import { HeroBanner } from '../../components/HeroBanner'
-import { Button, Card, CardHeader, EmptyState, StatCard, Table } from '../../components/ui'
+import { Button, Card, CardHeader, EmptyState, Skeleton, StatCard, Table } from '../../components/ui'
+import { caseColumns } from './Cases'
 
 function greeting() {
   const h = new Date().getHours()
@@ -10,24 +13,17 @@ function greeting() {
 }
 
 const OFFICER_STATS = [
-  { icon: FolderOpen, label: 'My open cases', caption: 'Assigned to you', tone: 'coral' },
-  { icon: Hourglass, label: 'Awaiting my acceptance', caption: 'Accept within 2 hours', tone: 'gold' },
-  { icon: Eye, label: 'Reveal windows open', caption: 'Identity visible for a set time', tone: 'saffron' },
-  { icon: FileCheck, label: 'Copies released', caption: 'Redacted and approved', tone: 'green' },
+  { key: 'open_cases', icon: FolderOpen, label: 'My open cases', caption: 'Assigned to you', tone: 'coral' },
+  { key: 'awaiting_acceptance', icon: Hourglass, label: 'Awaiting my acceptance', caption: 'Accept within 2 minutes in the demo', tone: 'gold' },
+  { key: 'reveals_open', icon: Eye, label: 'Reveal windows open', caption: 'Identity visible for 60 seconds', tone: 'saffron' },
+  { key: 'copies_released', icon: FileCheck, label: 'Copies released', caption: 'Redacted and approved', tone: 'green' },
 ]
 
 const SUPERVISOR_STATS = [
-  { icon: Inbox, label: 'Unassigned complaints', caption: 'At your station', tone: 'coral' },
-  { icon: KeyRound, label: 'Reveal approvals', caption: 'Waiting for you', tone: 'gold' },
-  { icon: FileText, label: 'Copies to review', caption: 'Medium-risk public copies', tone: 'saffron' },
-  { icon: Siren, label: 'Escalations', caption: 'Not accepted in time', tone: 'green' },
-]
-
-const COLUMNS = [
-  { key: 'id', label: 'Case number' },
-  { key: 'status', label: 'Status' },
-  { key: 'stage', label: 'Stage' },
-  { key: 'updated', label: 'Last updated' },
+  { key: 'open_cases', icon: Inbox, label: 'Open cases', caption: 'At your station', tone: 'coral' },
+  { key: 'reveal_approvals', icon: KeyRound, label: 'Reveal approvals', caption: 'Waiting for you', tone: 'gold' },
+  { key: 'copies_to_review', icon: FileText, label: 'Copies to review', caption: 'Medium-risk public copies', tone: 'saffron' },
+  { key: 'escalations', icon: Siren, label: 'Escalations', caption: 'Not accepted in time', tone: 'green' },
 ]
 
 export default function PoliceOverview() {
@@ -35,7 +31,14 @@ export default function PoliceOverview() {
   const navigate = useNavigate()
   const supervisor = user.role === 'supervisor'
   const stats = supervisor ? SUPERVISOR_STATS : OFFICER_STATS
+  const [summary, setSummary] = useState(null)
+  const [cases, setCases] = useState(null)
   const today = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+
+  useEffect(() => {
+    api('/police/summary').then(setSummary).catch(() => setSummary({}))
+    api('/police/cases').then(setCases).catch(() => setCases([]))
+  }, [])
 
   return (
     <div className="flex flex-col gap-8">
@@ -50,18 +53,20 @@ export default function PoliceOverview() {
       </HeroBanner>
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-        {stats.map((s) => <StatCard key={s.label} {...s} value="0" />)}
+        {stats.map((s) => <StatCard key={s.key} {...s} value={summary ? String(summary[s.key] ?? 0) : '…'} />)}
       </div>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
         <Card className="xl:col-span-8">
           <CardHeader icon={Layers} title={supervisor ? 'Station case queue' : 'My case queue'}
             action={<Link to={supervisor ? '/police/allocation' : '/police/cases'} className="flex items-center gap-1.5 text-sm text-gold-soft hover:underline">View all <ArrowRight size={15} /></Link>} />
-          <Table columns={COLUMNS} rows={[]} empty={(
-            <EmptyState icon={Inbox} title={supervisor ? 'No complaints at your station yet' : 'No cases assigned to you yet'}>
-              New complaints appear here by case number only. The survivor's name and contact details are never shown in this list.
-            </EmptyState>
-          )} />
+          {!cases ? <div className="flex flex-col gap-3 p-6"><Skeleton className="h-10" /><Skeleton className="h-10" /></div> : (
+            <Table columns={caseColumns(supervisor).filter((c) => !['area', 'flags'].includes(c.key))} rows={cases.slice(0, 6)} empty={(
+              <EmptyState icon={Inbox} title={supervisor ? 'No complaints at your station yet' : 'No cases assigned to you yet'}>
+                New complaints appear here by case number only. The survivor's name and contact details are never shown in this list.
+              </EmptyState>
+            )} />
+          )}
         </Card>
 
         <Card className="border-ok/25 xl:col-span-4" style={{ background: 'linear-gradient(180deg, rgba(14,42,28,.55), rgba(20,14,14,.92))' }}>
