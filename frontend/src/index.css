@@ -1,5 +1,66 @@
 @import "tailwindcss";
 
-/* Phase 1 placeholder look. Phase 2 replaces this with the full Kavach theme. */
+/* Kavach theme. Colours taken from the inspo palette; tricolour values are the official flag colours. */
+@theme {
+  --color-ink: #0B0506;
+  --color-bg: #120A0B;
+  --color-surface: #1C1012;
+  --color-surface-2: #26171A;
+  --color-line: #3A2427;
+  --color-line-soft: #2C1B1D;
+  --color-text: #F4ECE6;
+  --color-muted: #B8A69E;
+  --color-faint: #8A7770;
+  --color-maroon: #8E2A2E;
+  --color-maroon-hi: #A3343A;
+  --color-maroon-deep: #5A1C21;
+  --color-coral: #E5605A;
+  --color-gold: #D4AF37;
+  --color-gold-soft: #E8C766;
+  --color-saffron: #FF9933;
+  --color-india-white: #FFFFFF;
+  --color-india-green: #138808;
+  --color-ok: #3FB950;
+  --color-warn: #E8A33D;
+  --color-danger: #E5484D;
+
+  --font-display: "Cinzel", Cambria, Georgia, serif;
+  --font-sans: "Inter", "Noto Sans Devanagari", "Noto Sans Kannada", "Nirmala UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", Consolas, monospace;
+}
+
 html, body, #root { height: 100%; }
-body { margin: 0; background: #120A0B; color: #F4ECE6; font-family: system-ui, "Segoe UI", "Nirmala UI", sans-serif; }
+
+body {
+  margin: 0;
+  background-color: var(--color-bg);
+  background-image:
+    radial-gradient(1200px 600px at 85% -10%, rgba(142, 42, 46, 0.22), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgba(255, 153, 51, 0.06), transparent 60%);
+  background-attachment: fixed;
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: rgba(212, 175, 55, 0.35); }
+
+/* Gold focus ring for keyboard users everywhere. */
+:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 2px; border-radius: 6px; }
+
+/* Thin scrollbars in the theme. */
+* { scrollbar-width: thin; scrollbar-color: #3A2427 transparent; }
+
+.tricolour-line { height: 3px; background: linear-gradient(90deg, #FF9933 0 33.33%, #FFFFFF 33.33% 66.66%, #138808 66.66% 100%); }
+
+.gold-divider { position: relative; height: 1px; background: linear-gradient(90deg, transparent, rgba(212,175,55,.55), transparent); }
+.gold-divider::after { content: ""; position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; border-radius: 99px; background: var(--color-gold); transform: translate(-50%, -50%); box-shadow: 0 0 8px rgba(212,175,55,.8); }
+
+.card-glow { background: linear-gradient(180deg, rgba(38,23,26,.92), rgba(28,16,18,.92)); box-shadow: inset 0 1px 0 rgba(255,255,255,.03), 0 10px 30px -18px rgba(0,0,0,.8); }
+
+@keyframes kv-toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.kv-toast { animation: kv-toast-in .18s ease-out; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

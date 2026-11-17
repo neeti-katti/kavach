@@ -1,22 +1,30 @@
 import { useEffect, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
+import { ArrowRight, Fingerprint, HeartHandshake, LockKeyhole, Radar, ShieldCheck, Smartphone, UserCheck } from 'lucide-react'
 import { api } from '../api'
 import { ROLE_HOME, useAuth } from '../auth'
+import { HeroScene } from '../components/art'
+import { LogoTile } from '../components/Logo'
+import { useToast } from '../components/toast'
+import { Button, Field, inputClass } from '../components/ui'
 
-// Phase 1: working sign-in flow with placeholder styling. Phase 2 applies the Kavach design.
-const TABS = [
-  { id: 'survivor', label: 'Survivor' },
-  { id: 'police', label: 'Police' },
-  { id: 'security', label: 'Security' },
+const ROLES = [
+  { id: 'survivor', label: 'Survivor', desc: 'File or track a complaint', icon: HeartHandshake },
+  { id: 'police', label: 'Police', desc: 'Officers and supervisors', icon: ShieldCheck },
+  { id: 'security', label: 'Security', desc: 'Cyber cell', icon: Radar },
 ]
 
-const input = 'w-full rounded-md border border-[#3A2427] bg-[#1C1012] px-3 py-2 outline-none focus:border-[#D4AF37]'
-const button = 'rounded-md bg-[#8E2A2E] px-4 py-2 font-medium hover:bg-[#A3343A] disabled:opacity-50'
+const PROMISES = [
+  { icon: LockKeyhole, title: 'Encrypted identity vault', text: 'Names and contact details are sealed field by field.' },
+  { icon: UserCheck, title: 'Need-to-know officer access', text: 'Officers work with a case number, not a name.' },
+  { icon: Fingerprint, title: 'Every action on record', text: 'A tamper-evident log, watched by a honeypot layer.' },
+]
 
 export default function Login() {
   const { user, loading, signIn } = useAuth()
   const navigate = useNavigate()
-  const [tab, setTab] = useState('survivor')
+  const toast = useToast()
+  const [role, setRole] = useState('survivor')
   const [demo, setDemo] = useState(null)
   const [phone, setPhone] = useState('')
   const [username, setUsername] = useState('')
@@ -26,18 +34,19 @@ export default function Login() {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
 
-  useEffect(() => {
-    api('/demo/accounts').then(setDemo).catch(() => {})
-  }, [])
+  useEffect(() => { api('/demo/accounts').then(setDemo).catch(() => {}) }, [])
+  useEffect(() => { document.title = 'Kavach' }, [])
 
   if (loading) return null
   if (user) return <Navigate to={ROLE_HOME[user.role] ?? '/'} replace />
 
-  function switchTab(id) {
-    setTab(id)
+  function pickRole(id) {
+    setRole(id)
     setChallenge(null)
     setCode('')
     setError('')
+    setUsername('')
+    setPassword('')
   }
 
   async function run(fn) {
@@ -67,78 +76,132 @@ export default function Login() {
     run(async () => {
       const r = await api('/auth/verify', { method: 'POST', body: { challenge_id: challenge.id, code } })
       signIn(r.token, r.user)
+      if (r.user.role !== 'survivor') toast(`Signed in as ${r.user.display_name}.`, 'success')
       navigate(ROLE_HOME[r.user.role] ?? '/', { replace: true })
     })
   }
 
-  const staff = (demo?.staff ?? []).filter((s) => (tab === 'security' ? s.role === 'security' : s.role !== 'security'))
+  const staff = (demo?.staff ?? []).filter((s) => (role === 'security' ? s.role === 'security' : s.role !== 'security'))
 
   return (
-    <main className="mx-auto flex min-h-full max-w-md flex-col justify-center gap-6 p-6">
-      <h1 className="text-3xl font-semibold tracking-wide text-[#D4AF37]">Kavach</h1>
+    <div className="relative min-h-full overflow-hidden">
+      <HeroScene className="absolute inset-0 h-full w-full" height={900} chakraX={0.6} chakraY={0.3} chakraSize={1.55} />
+      {/* Dark fade behind the text that clears toward the bottom, so the crowd stays visible. */}
+      <div className="absolute inset-0 bg-gradient-to-r from-bg via-bg/80 to-bg/25 [mask-image:linear-gradient(to_bottom,black_50%,transparent_82%)]" aria-hidden />
+      <div className="absolute inset-x-0 bottom-0 h-[14%] bg-gradient-to-t from-bg/55 to-transparent" aria-hidden />
 
-      <div role="tablist" className="flex gap-2">
-        {TABS.map((t) => (
-          <button key={t.id} role="tab" aria-selected={tab === t.id} onClick={() => switchTab(t.id)}
-            className={`rounded-md px-3 py-1.5 text-sm ${tab === t.id ? 'bg-[#8E2A2E]' : 'border border-[#3A2427]'}`}>
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      {!challenge && tab === 'survivor' && (
-        <form onSubmit={startSurvivor} className="flex flex-col gap-3">
-          <label className="text-sm" htmlFor="phone">Mobile number</label>
-          <input id="phone" className={input} inputMode="numeric" autoComplete="tel" value={phone}
-            onChange={(e) => setPhone(e.target.value)} placeholder="10-digit number" />
-          <button className={button} disabled={busy}>Send code</button>
-          {demo && <p className="text-xs opacity-70">Demo number: {demo.survivor_phone}</p>}
-        </form>
-      )}
-
-      {!challenge && tab !== 'survivor' && (
-        <form onSubmit={startStaff} className="flex flex-col gap-3">
-          <label className="text-sm" htmlFor="username">Username</label>
-          <input id="username" className={input} autoComplete="username" value={username} onChange={(e) => setUsername(e.target.value)} />
-          <label className="text-sm" htmlFor="password">Password</label>
-          <input id="password" type="password" className={input} autoComplete="current-password" value={password}
-            onChange={(e) => setPassword(e.target.value)} />
-          <button className={button} disabled={busy}>Continue</button>
-          {staff.length > 0 && (
-            <div className="mt-2 text-xs">
-              <p className="mb-1 opacity-70">Demo accounts (password {demo.password}):</p>
-              <ul className="flex flex-col gap-1">
-                {staff.map((s) => (
-                  <li key={s.username}>
-                    <button type="button" className="underline decoration-dotted hover:text-[#D4AF37]"
-                      onClick={() => { setUsername(s.username); setPassword(demo.password) }}>
-                      {s.display_name} · {s.role} · {s.station ?? 'HQ'}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </form>
-      )}
-
-      {challenge && (
-        <form onSubmit={verify} className="flex flex-col gap-3">
-          <p className="text-sm">{challenge.hint}</p>
-          <input className={input} inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code}
-            onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} placeholder="6-digit code" aria-label="Verification code" />
-          <button className={button} disabled={busy || code.length !== 6}>Verify and sign in</button>
-          {challenge.demoCode && (
-            <p className="text-xs opacity-70">
-              Demo mode, simulated code: <b className="font-mono">{challenge.demoCode}</b>{' '}
-              <button type="button" className="underline" onClick={() => setCode(challenge.demoCode)}>Use it</button>
+      <div className="relative z-10 grid min-h-full grid-cols-1 gap-10 px-6 py-10 sm:px-10 lg:grid-cols-12 lg:gap-12 lg:px-16 xl:px-24">
+        <section className="flex flex-col justify-center gap-8 lg:col-span-7 lg:pb-40">
+          <LogoTile size={150} className="max-lg:!h-24 max-lg:!w-24" />
+          <div>
+            <p className="mb-3 flex items-center gap-3 text-sm tracking-[.22em] text-gold-soft uppercase">
+              <span className="h-[3px] w-10 rounded-full bg-gradient-to-r from-saffron via-india-white to-india-green" aria-hidden />
+              Survivor identity protection
             </p>
-          )}
-          <button type="button" className="text-left text-xs underline opacity-70" onClick={() => switchTab(tab)}>Start over</button>
-        </form>
-      )}
+            <h1 className="font-display text-[clamp(2.4rem,4.4vw,4.4rem)] leading-[1.04] font-semibold text-text">
+              Justice without <span className="text-coral">exposure.</span>
+            </h1>
+            <p className="mt-5 max-w-2xl text-lg text-muted">
+              File a complaint, investigate and release records for sexual-offence cases without revealing who the survivor is.
+            </p>
+          </div>
+          <ul className="hidden max-w-3xl gap-4 sm:grid sm:grid-cols-3">
+            {PROMISES.map((p) => (
+              <li key={p.title} className="rounded-2xl border border-line/80 bg-bg/50 p-4 backdrop-blur-sm">
+                <p.icon size={22} className="mb-2 text-gold" aria-hidden />
+                <p className="text-sm font-semibold text-text">{p.title}</p>
+                <p className="mt-1 text-xs leading-relaxed text-muted">{p.text}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
 
-      {error && <p role="alert" className="rounded-md border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300">{error}</p>}
-    </main>
+        <section className="flex items-center pb-40 lg:col-span-5 lg:pb-24">
+          <div className="card-glow w-full max-w-[520px] rounded-3xl border border-gold/25 p-7 backdrop-blur-md sm:p-9 lg:ml-auto">
+            <h2 className="font-display text-2xl font-semibold text-text">Sign in</h2>
+            <p className="mt-1 text-sm text-muted">Choose who you are.</p>
+
+            <div role="tablist" aria-label="Sign in as" className="mt-6 grid grid-cols-3 gap-3">
+              {ROLES.map((r) => (
+                <button key={r.id} role="tab" aria-selected={role === r.id} onClick={() => pickRole(r.id)}
+                  className={`flex flex-col items-start gap-2 rounded-2xl border p-3.5 text-left transition-colors ${role === r.id
+                    ? 'border-[#C2545A]/70 bg-gradient-to-b from-maroon/70 to-maroon-deep/40'
+                    : 'border-line bg-white/[.02] hover:border-gold/40'}`}>
+                  <r.icon size={22} className={role === r.id ? 'text-gold-soft' : 'text-faint'} aria-hidden />
+                  <span className="text-sm font-semibold text-text">{r.label}</span>
+                  <span className="hidden text-[11px] leading-snug text-muted sm:block">{r.desc}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="gold-divider my-7" />
+
+            {!challenge && role === 'survivor' && (
+              <form onSubmit={startSurvivor} className="flex flex-col gap-4">
+                <Field label="Mobile number" id="phone" hint="We send a one-time code. No password needed.">
+                  <input id="phone" className={inputClass} inputMode="numeric" autoComplete="tel" value={phone}
+                    onChange={(e) => setPhone(e.target.value)} placeholder="10-digit number" />
+                </Field>
+                <Button icon={Smartphone} iconRight={ArrowRight} disabled={busy || phone.replace(/\D/g, '').length < 10}>Send code</Button>
+                {demo && (
+                  <p className="text-xs text-faint">
+                    Demo number <span className="font-mono text-muted">{demo.survivor_phone}</span>{' '}
+                    <button type="button" className="text-gold-soft underline-offset-2 hover:underline" onClick={() => setPhone(demo.survivor_phone)}>Use it</button>
+                  </p>
+                )}
+              </form>
+            )}
+
+            {!challenge && role !== 'survivor' && (
+              <form onSubmit={startStaff} className="flex flex-col gap-4">
+                <Field label="Username" id="username">
+                  <input id="username" className={inputClass} autoComplete="username" value={username} onChange={(e) => setUsername(e.target.value)} />
+                </Field>
+                <Field label="Password" id="password">
+                  <input id="password" type="password" className={inputClass} autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                </Field>
+                <Button iconRight={ArrowRight} disabled={busy || !username || !password}>Continue</Button>
+                {staff.length > 0 && (
+                  <details className="group rounded-xl border border-line-soft bg-white/[.02] px-4 py-3 text-sm">
+                    <summary className="cursor-pointer text-muted marker:text-gold">Demo accounts</summary>
+                    <ul className="mt-3 flex max-h-44 flex-col gap-1 overflow-y-auto">
+                      {staff.map((s) => (
+                        <li key={s.username}>
+                          <button type="button" onClick={() => { setUsername(s.username); setPassword(demo.password) }}
+                            className="flex w-full items-center justify-between gap-3 rounded-lg px-2 py-1.5 text-left hover:bg-white/[.04]">
+                            <span className="text-text">{s.display_name}</span>
+                            <span className="text-xs text-faint capitalize">{s.role} · {s.station?.replace(' Police Station', '') ?? 'HQ'}</span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                )}
+              </form>
+            )}
+
+            {challenge && (
+              <form onSubmit={verify} className="flex flex-col gap-4">
+                <Field label="Verification code" id="code" hint={challenge.hint}>
+                  <input id="code" className={`${inputClass} text-center font-mono text-xl tracking-[.5em]`} inputMode="numeric" autoComplete="one-time-code"
+                    maxLength={6} value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} placeholder="••••••" autoFocus />
+                </Field>
+                <Button icon={ShieldCheck} disabled={busy || code.length !== 6}>Verify and sign in</Button>
+                <div className="flex items-center justify-between text-xs">
+                  {challenge.demoCode ? (
+                    <span className="text-faint">Demo code <span className="font-mono text-muted">{challenge.demoCode}</span>{' '}
+                      <button type="button" className="text-gold-soft hover:underline" onClick={() => setCode(challenge.demoCode)}>Use it</button>
+                    </span>
+                  ) : <span />}
+                  <button type="button" className="text-muted hover:text-text" onClick={() => pickRole(role)}>Start over</button>
+                </div>
+              </form>
+            )}
+
+            {error && <p role="alert" className="mt-4 rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-[#FFB4B5]">{error}</p>}
+          </div>
+        </section>
+      </div>
+    </div>
   )
 }

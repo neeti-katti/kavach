@@ -1,11 +1,19 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
+import { ClipboardCheck, Eye, FileCheck, FolderOpen, Lock, Radar, ScrollText, Siren, Users } from 'lucide-react'
 import { ROLE_HOME, useAuth } from './auth'
+import StaffShell from './layouts/StaffShell'
+import SurvivorShell from './layouts/SurvivorShell'
 import Login from './pages/Login'
-import Home from './pages/Home'
+import Placeholder from './pages/Placeholder'
+import PoliceOverview from './pages/police/Overview'
+import SecurityOverview from './pages/security/Overview'
+import ComplaintStatus from './pages/survivor/ComplaintStatus'
+import NewComplaint from './pages/survivor/NewComplaint'
+import SurvivorHome from './pages/survivor/Home'
 
 function RequireRole({ roles, children }) {
   const { user, loading } = useAuth()
-  if (loading) return <p className="p-8 text-sm opacity-70">Loading…</p>
+  if (loading) return null
   if (!user) return <Navigate to="/" replace />
   if (!roles.includes(user.role)) return <Navigate to={ROLE_HOME[user.role] ?? '/'} replace />
   return children
@@ -15,9 +23,39 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Login />} />
-      <Route path="/survivor/*" element={<RequireRole roles={['survivor', 'helper']}><Home /></RequireRole>} />
-      <Route path="/police/*" element={<RequireRole roles={['officer', 'supervisor']}><Home /></RequireRole>} />
-      <Route path="/security/*" element={<RequireRole roles={['security']}><Home /></RequireRole>} />
+
+      <Route path="/survivor" element={<RequireRole roles={['survivor', 'helper']}><SurvivorShell /></RequireRole>}>
+        <Route index element={<SurvivorHome />} />
+        <Route path="new" element={<NewComplaint />} />
+        <Route path="status" element={<ComplaintStatus />} />
+      </Route>
+
+      <Route path="/police" element={<RequireRole roles={['officer', 'supervisor']}><StaffShell area="police" /></RequireRole>}>
+        <Route index element={<PoliceOverview />} />
+        <Route path="cases" element={<Placeholder eyebrow="Police" title="My cases" icon={FolderOpen} phase={4}
+          description="Your assigned cases by case number, with the redacted case sheet, masked calls and reveal requests." empty="No cases yet" />} />
+        <Route path="reveals" element={<Placeholder eyebrow="Police" title="Reveal requests" icon={Eye} phase={4}
+          description="Ask to see one identity field for one task. Each reveal is time-limited, watermarked and logged." empty="No reveal requests" />} />
+        <Route path="copies" element={<Placeholder eyebrow="Police" title="Public copies" icon={FileCheck} phase={5}
+          description="Redacted copies with their risk score, ready to release, waiting for review, or blocked." empty="No public copies yet" />} />
+        <Route path="allocation" element={<Placeholder eyebrow="Supervisor" title="Allocation" icon={Users} phase={4}
+          description="Who each complaint went to and why, with reassignment and escalation." empty="No complaints to allocate" />} />
+        <Route path="approvals" element={<Placeholder eyebrow="Supervisor" title="Approvals" icon={ClipboardCheck} phase={4}
+          description="Reveal requests and medium-risk public copies waiting for your decision." empty="Nothing waiting for approval" />} />
+      </Route>
+
+      <Route path="/security" element={<RequireRole roles={['security']}><StaffShell area="security" /></RequireRole>}>
+        <Route index element={<SecurityOverview />} />
+        <Route path="alerts" element={<Placeholder eyebrow="Security" title="Alerts" icon={Siren} phase={6}
+          description="Every tripwire that fired: canary records opened, decoy endpoints hit, honey credentials used." empty="No alerts" />} />
+        <Route path="locked" element={<Placeholder eyebrow="Security" title="Locked accounts" icon={Lock} phase={6}
+          description="Accounts locked automatically by a tripwire, with what they touched and an unlock action." empty="No locked accounts" />} />
+        <Route path="decoys" element={<Placeholder eyebrow="Security" title="Decoys" icon={Radar} phase={6}
+          description="The planted canary records, decoy endpoints and honey credentials, and their hit counts." empty="Decoys are not armed yet" />} />
+        <Route path="audit" element={<Placeholder eyebrow="Security" title="Audit log" icon={ScrollText} phase={6}
+          description="Every action in the system, hash-chained so edits are detectable. No personal data is ever logged." empty="Audit viewer coming up" />} />
+      </Route>
+
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

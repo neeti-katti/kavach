@@ -1,0 +1,92 @@
+// Survivor-facing text in English, Hindi and Kannada. The choice is kept in memory only, never saved on the device.
+import { createContext, useContext } from 'react'
+
+export const LANGS = [
+  { id: 'en', label: 'EN', name: 'English' },
+  { id: 'hi', label: 'हिं', name: 'हिंदी' },
+  { id: 'kn', label: 'ಕ', name: 'ಕನ್ನಡ' },
+]
+
+export const STRINGS = {
+  en: {
+    welcome: 'Welcome',
+    welcomeSub: 'Tell us what happened in your own words and language. Your identity stays protected at every step.',
+    file: 'File a complaint',
+    fileDesc: 'Type it in English, Hindi or Kannada, or upload a photo of a written complaint.',
+    track: 'Track my complaint',
+    trackDesc: 'See where your case is and message your officer.',
+    quickExit: 'Quick exit',
+    privacyTitle: 'Your privacy',
+    p1: 'Only you can see your name and contact details.',
+    p2: 'Your officer sees a case number, not your name.',
+    p3: 'Nothing is saved on this phone.',
+    p4: 'Press Esc or tap Quick exit to leave at once.',
+    danger: 'In danger right now?',
+    dangerSub: 'Call 112 for emergency help.',
+    signOut: 'Sign out',
+    stepAbout: 'About you',
+    stepWhat: 'What happened',
+    stepReview: 'Review and confirm',
+    stages: ['Submitted', 'Officer assigned', 'Statement scheduled', 'Under investigation', 'Report filed'],
+    back: 'Back',
+    newTitle: 'New complaint',
+    statusTitle: 'My complaint',
+    noComplaint: 'You have not filed a complaint yet.',
+  },
+  hi: {
+    welcome: 'स्वागत है',
+    welcomeSub: 'जो हुआ, उसे अपने शब्दों और अपनी भाषा में बताएँ। हर कदम पर आपकी पहचान सुरक्षित रहती है।',
+    file: 'शिकायत दर्ज करें',
+    fileDesc: 'अंग्रेज़ी, हिंदी या कन्नड़ में टाइप करें, या लिखी हुई शिकायत की फ़ोटो अपलोड करें।',
+    track: 'मेरी शिकायत की स्थिति',
+    trackDesc: 'देखें कि आपका मामला कहाँ है और अपने अधिकारी को संदेश भेजें।',
+    quickExit: 'तुरंत बाहर निकलें',
+    privacyTitle: 'आपकी गोपनीयता',
+    p1: 'आपका नाम और संपर्क विवरण केवल आप देख सकते हैं।',
+    p2: 'आपके अधिकारी को आपका नाम नहीं, केवल केस नंबर दिखता है।',
+    p3: 'इस फ़ोन पर कुछ भी सेव नहीं होता।',
+    p4: 'तुरंत निकलने के लिए Esc दबाएँ या "तुरंत बाहर निकलें" पर टैप करें।',
+    danger: 'क्या आप अभी खतरे में हैं?',
+    dangerSub: 'आपातकालीन मदद के लिए 112 पर कॉल करें।',
+    signOut: 'साइन आउट',
+    stepAbout: 'आपके बारे में',
+    stepWhat: 'क्या हुआ',
+    stepReview: 'जाँचें और पुष्टि करें',
+    stages: ['जमा की गई', 'अधिकारी नियुक्त', 'बयान का समय तय', 'जाँच जारी', 'रिपोर्ट दाखिल'],
+    back: 'वापस',
+    newTitle: 'नई शिकायत',
+    statusTitle: 'मेरी शिकायत',
+    noComplaint: 'आपने अभी तक कोई शिकायत दर्ज नहीं की है।',
+  },
+  kn: {
+    welcome: 'ಸ್ವಾಗತ',
+    welcomeSub: 'ಏನಾಯಿತು ಎಂಬುದನ್ನು ನಿಮ್ಮದೇ ಮಾತುಗಳಲ್ಲಿ ಮತ್ತು ನಿಮ್ಮ ಭಾಷೆಯಲ್ಲಿ ತಿಳಿಸಿ. ಪ್ರತಿ ಹಂತದಲ್ಲೂ ನಿಮ್ಮ ಗುರುತು ಸುರಕ್ಷಿತವಾಗಿರುತ್ತದೆ.',
+    file: 'ದೂರು ದಾಖಲಿಸಿ',
+    fileDesc: 'ಇಂಗ್ಲಿಷ್, ಹಿಂದಿ ಅಥವಾ ಕನ್ನಡದಲ್ಲಿ ಟೈಪ್ ಮಾಡಿ, ಅಥವಾ ಬರೆದ ದೂರಿನ ಫೋಟೋ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ.',
+    track: 'ನನ್ನ ದೂರಿನ ಸ್ಥಿತಿ',
+    trackDesc: 'ನಿಮ್ಮ ಪ್ರಕರಣ ಯಾವ ಹಂತದಲ್ಲಿದೆ ಎಂದು ನೋಡಿ ಮತ್ತು ನಿಮ್ಮ ಅಧಿಕಾರಿಗೆ ಸಂದೇಶ ಕಳುಹಿಸಿ.',
+    quickExit: 'ತಕ್ಷಣ ನಿರ್ಗಮಿಸಿ',
+    privacyTitle: 'ನಿಮ್ಮ ಗೌಪ್ಯತೆ',
+    p1: 'ನಿಮ್ಮ ಹೆಸರು ಮತ್ತು ಸಂಪರ್ಕ ವಿವರಗಳನ್ನು ನೀವು ಮಾತ್ರ ನೋಡಬಹುದು.',
+    p2: 'ನಿಮ್ಮ ಅಧಿಕಾರಿಗೆ ನಿಮ್ಮ ಹೆಸರಲ್ಲ, ಪ್ರಕರಣ ಸಂಖ್ಯೆ ಮಾತ್ರ ಕಾಣುತ್ತದೆ.',
+    p3: 'ಈ ಫೋನ್‌ನಲ್ಲಿ ಏನನ್ನೂ ಉಳಿಸಲಾಗುವುದಿಲ್ಲ.',
+    p4: 'ತಕ್ಷಣ ಹೊರಹೋಗಲು Esc ಒತ್ತಿ ಅಥವಾ "ತಕ್ಷಣ ನಿರ್ಗಮಿಸಿ" ಒತ್ತಿ.',
+    danger: 'ನೀವು ಈಗ ಅಪಾಯದಲ್ಲಿದ್ದೀರಾ?',
+    dangerSub: 'ತುರ್ತು ಸಹಾಯಕ್ಕಾಗಿ 112ಗೆ ಕರೆ ಮಾಡಿ.',
+    signOut: 'ಸೈನ್ ಔಟ್',
+    stepAbout: 'ನಿಮ್ಮ ಬಗ್ಗೆ',
+    stepWhat: 'ಏನಾಯಿತು',
+    stepReview: 'ಪರಿಶೀಲಿಸಿ ಮತ್ತು ದೃಢೀಕರಿಸಿ',
+    stages: ['ಸಲ್ಲಿಸಲಾಗಿದೆ', 'ಅಧಿಕಾರಿ ನಿಯೋಜಿತ', 'ಹೇಳಿಕೆ ನಿಗದಿಯಾಗಿದೆ', 'ತನಿಖೆ ನಡೆಯುತ್ತಿದೆ', 'ವರದಿ ಸಲ್ಲಿಸಲಾಗಿದೆ'],
+    back: 'ಹಿಂದೆ',
+    newTitle: 'ಹೊಸ ದೂರು',
+    statusTitle: 'ನನ್ನ ದೂರು',
+    noComplaint: 'ನೀವು ಇನ್ನೂ ಯಾವುದೇ ದೂರು ದಾಖಲಿಸಿಲ್ಲ.',
+  },
+}
+
+export const LangContext = createContext({ lang: 'en', setLang: () => {}, t: STRINGS.en })
+
+export function useLang() {
+  return useContext(LangContext)
+}

@@ -8,10 +8,12 @@ import { dirname, join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
 const CHROME = process.env.CHROME || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
-const PORT = 9333
+const CALL_TIMEOUT_MS = 90_000
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
 async function launch() {
+  // A fresh port each run, so a leftover Chrome from an earlier run can never be picked up by mistake.
+  const PORT = 9400 + Math.floor(Math.random() * 500)
   const profile = mkdtempSync(join(tmpdir(), 'kv-chrome-'))
   const proc = spawn(CHROME, ['--headless=new', '--disable-gpu', '--hide-scrollbars', `--remote-debugging-port=${PORT}`,
     `--user-data-dir=${profile}`, '--no-first-run', '--no-default-browser-check', 'about:blank'], { stdio: 'ignore' })
@@ -38,12 +40,15 @@ async function launch() {
   }
   const send = (method, params = {}) => new Promise((res, rej) => {
     const id = ++seq
-    pending.set(id, { res, rej })
+    const timer = setTimeout(() => { pending.delete(id); rej(new Error(`${method} timed out`)) }, CALL_TIMEOUT_MS)
+    pending.set(id, { res: (v) => { clearTimeout(timer); res(v) }, rej: (e) => { clearTimeout(timer); rej(e) } })
     ws.send(JSON.stringify({ id, method, params }))
   })
   const close = async () => {
     try { ws.close() } catch { /* ignore */ }
-    proc.kill()
+    // Kill the whole Chrome process tree on Windows; a plain kill can leave the browser running.
+    if (process.platform === 'win32') spawn('taskkill', ['/PID', String(proc.pid), '/T', '/F'], { stdio: 'ignore' })
+    else proc.kill()
     await sleep(600)
     try { rmSync(profile, { recursive: true, force: true }) } catch { /* Chrome may still hold files */ }
   }
@@ -101,12 +106,21 @@ async function pdf(htmlPath, outPath, label) {
     await sleep(1500)
     const footer = `<div style="font-family:Segoe UI,sans-serif;font-size:8px;width:100%;padding:0 12mm;display:flex;justify-content:space-between;color:#7a6a64">`
       + `<span>Kavach · ${label}</span><span><span class="pageNumber"></span> / <span class="totalPages"></span></span></div>`
+    // Stream the PDF back in chunks: large reports are too big for a single DevTools message.
     const r = await send('Page.printToPDF', {
       printBackground: true, paperWidth: 8.27, paperHeight: 11.69,
       marginTop: 0.45, marginBottom: 0.6, marginLeft: 0, marginRight: 0,
       displayHeaderFooter: true, headerTemplate: '<div></div>', footerTemplate: footer,
+      transferMode: 'ReturnAsStream',
     })
-    writeFileSync(outPath, Buffer.from(r.data, 'base64'))
+    const chunks = []
+    for (;;) {
+      const part = await send('IO.read', { handle: r.stream, size: 1 << 20 })
+      chunks.push(Buffer.from(part.data, part.base64Encoded ? 'base64' : 'utf8'))
+      if (part.eof) break
+    }
+    await send('IO.close', { handle: r.stream })
+    writeFileSync(outPath, Buffer.concat(chunks))
     console.log('pdf', outPath)
   } finally {
     await close()
@@ -114,6 +128,12 @@ async function pdf(htmlPath, outPath, label) {
 }
 
 const [cmd, ...args] = process.argv.slice(2)
-if (cmd === 'shots') await shots(args[0])
-else if (cmd === 'pdf') await pdf(args[0], args[1], args[2] ?? 'Phase report')
-else console.log('usage: node tools.mjs shots <jobs.json> | pdf <report.html> <out.pdf> <label>')
+try {
+  if (cmd === 'shots') await shots(args[0])
+  else if (cmd === 'pdf') await pdf(args[0], args[1], args[2] ?? 'Phase report')
+  else console.log('usage: node tools.mjs shots <jobs.json> | pdf <report.html> <out.pdf> <label>')
+} catch (e) {
+  console.error('error:', e.message)
+  process.exitCode = 1
+}
+setTimeout(() => process.exit(), 1500) // the WebSocket can keep Node alive after Chrome is gone

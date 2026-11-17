@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Kavach · Phase 2 Report: UI shell</title>
+<link rel="stylesheet" href="report.css">
+<style>
+  .swatches { display: grid; grid-template-columns: repeat(6, 1fr); gap: 2.5mm; margin: 2mm 0 4mm; }
+  .sw { border: 0.3mm solid #EADFD2; border-radius: 1.5mm; overflow: hidden; font-size: 7.5pt; }
+  .sw i { display: block; height: 11mm; }
+  .sw span { display: block; padding: 1mm 1.5mm; }
+  .sw b { display: block; font-weight: 600; }
+  .phones { display: grid; grid-template-columns: 1fr 1fr 2.2fr; gap: 4mm; align-items: start; }
+</style>
+</head>
+<body>
+<header class="cover">
+  <div class="logo"><img src="../frontend/public/brand/kavach-logo.webp" alt="Kavach logo"></div>
+  <div>
+    <p class="eyebrow">Build report · Phase 2 of 7</p>
+    <h1>UI shell: theme, patriotic artwork and full-width layouts</h1>
+    <p class="meta">17 November 2026 · Time box 10 minutes · <span class="chip done">Complete</span></p>
+  </div>
+</header>
+<div class="tricolour"></div>
+
+<main class="page">
+  <p class="lead">Every screen from the plan now exists in the Kavach style: deep maroon and gold, the tricolour, a crowd of silhouettes with raised fists, placards and flags, a gold Ashoka Chakra and an India Gate skyline. Staff screens use the full width of the screen. The survivor portal stays plain, with quick exit and Hindi and Kannada.</p>
+
+  <div class="stats">
+    <div class="stat"><b>15</b><span>screens wired into navigation</span></div>
+    <div class="stat"><b>16</b><span>shared components</span></div>
+    <div class="stat"><b>4</b><span>hand-drawn artwork pieces</span></div>
+    <div class="stat"><b>3</b><span>survivor languages: English, Hindi, Kannada</span></div>
+  </div>
+
+  <h2>Sign-in screen</h2>
+  <figure><img src="img/p2-login.png" alt="Sign-in screen"><figcaption>Full-screen sign-in at 1440 × 900. The crowd is backlit by a saffron glow; the flags are drawn upright with saffron on top. Role cards for Survivor, Police and Security sit above the sign-in form.</figcaption></figure>
+
+  <h2>Police portal</h2>
+  <figure><img src="img/p2-officer.png" alt="Officer overview"><figcaption>Officer overview: sidebar with the logo on an ivory tile and the India Gate skyline, a breadcrumb with tricolour separators, case-number search, a hero banner, four stat cards, the case queue and the "Your access" panel.</figcaption></figure>
+  <figure><img src="img/p2-supervisor.png" alt="Supervisor overview"><figcaption>Supervisor overview: the same layout with supervisor navigation (Allocation, Approvals) and supervisor counts.</figcaption></figure>
+
+  <h2>Security portal</h2>
+  <figure><img src="img/p2-security.png" alt="Security overview"><figcaption>Security monitor: a thinner banner, alert counts, the live alert feed and the green system status panel. The honeypot shows "Not armed yet" until Phase 6.</figcaption></figure>
+
+  <h2>Survivor portal</h2>
+  <figure><img src="img/p2-survivor.png" alt="Survivor home in English"><figcaption>Survivor home: two large actions, the 112 emergency line, and a privacy panel. No crowd artwork here, so the screen draws less attention if someone glances at her phone.</figcaption></figure>
+  <div class="grid2">
+    <figure><img src="img/p2-survivor-hi.png" alt="Survivor home in Hindi"><figcaption>Hindi.</figcaption></figure>
+    <figure><img src="img/p2-survivor-kn.png" alt="Survivor status in Kannada"><figcaption>Kannada, on the complaint tracker with its five stages.</figcaption></figure>
+  </div>
+  <div class="phones">
+    <figure><img src="img/p2-login-mobile.png" alt="Sign-in on a phone"><figcaption>Sign-in on a phone (390 px).</figcaption></figure>
+    <figure><img src="img/p2-survivor-mobile.png" alt="Survivor home on a phone"><figcaption>Survivor home on a phone.</figcaption></figure>
+    <figure><img src="img/p2-placeholder.png" alt="Placeholder screen"><figcaption>Screens that later phases fill show what they will hold and which phase builds them.</figcaption></figure>
+  </div>
+
+  <h2>Design system</h2>
+  <h3>Colours</h3>
+  <div class="swatches">
+    <div class="sw"><i style="background:#120A0B"></i><span><b>Background</b>#120A0B</span></div>
+    <div class="sw"><i style="background:#1C1012"></i><span><b>Surface</b>#1C1012</span></div>
+    <div class="sw"><i style="background:#8E2A2E"></i><span><b>Maroon</b>#8E2A2E</span></div>
+    <div class="sw"><i style="background:#D4AF37"></i><span><b>Gold</b>#D4AF37</span></div>
+    <div class="sw"><i style="background:#E5605A"></i><span><b>Coral</b>#E5605A</span></div>
+    <div class="sw"><i style="background:#F4ECE6"></i><span><b>Ivory text</b>#F4ECE6</span></div>
+    <div class="sw"><i style="background:#FF9933"></i><span><b>Saffron</b>#FF9933</span></div>
+    <div class="sw"><i style="background:#FFFFFF"></i><span><b>White</b>#FFFFFF</span></div>
+    <div class="sw"><i style="background:#138808"></i><span><b>India green</b>#138808</span></div>
+    <div class="sw"><i style="background:#3FB950"></i><span><b>Status: OK</b>#3FB950</span></div>
+    <div class="sw"><i style="background:#E8A33D"></i><span><b>Status: waiting</b>#E8A33D</span></div>
+    <div class="sw"><i style="background:#E5484D"></i><span><b>Status: alert</b>#E5484D</span></div>
+  </div>
+  <table>
+    <tr><th style="width:26%">Element</th><th>Choice</th></tr>
+    <tr><td>Display type</td><td>Cinzel, a classical serif close to the logo's wordmark, for big headings only.</td></tr>
+    <tr><td>Body type</td><td>Inter, with Noto Sans Devanagari and Noto Sans Kannada for Hindi and Kannada. Case numbers use JetBrains Mono.</td></tr>
+    <tr><td>Fonts</td><td>Bundled with the app. No page calls Google Fonts or any other outside server, so nobody outside learns who opened the survivor portal.</td></tr>
+    <tr><td>Logo</td><td>Used exactly as supplied, on an ivory tile with a thin gold edge. Checked byte for byte against your original file: identical.</td></tr>
+    <tr><td>Patterns</td><td>Tricolour lines and breadcrumb separators, gold hairline dividers with a centre dot, cards with a warm 1px border and soft glow, a faint chakra behind empty states.</td></tr>
+  </table>
+
+  <h3>Artwork, all drawn in code</h3>
+  <table>
+    <tr><th style="width:26%">Piece</th><th>Details</th></tr>
+    <tr><td>Crowd</td><td>Three rows of silhouettes (far, middle, near) with raised fists, blank placards and small tricolour flags, lit from behind by a saffron glow. The same crowd appears every time.</td></tr>
+    <tr><td>Tricolour wave</td><td>Three brush-stroke bands in saffron, white and green with rough painted edges.</td></tr>
+    <tr><td>Ashoka Chakra</td><td>A 24-spoke wheel drawn in gold lines with a soft glow; also used faintly behind empty lists.</td></tr>
+    <tr><td>Skyline</td><td>India Gate, a minaret and a domed hall with a tricolour sweep, at the foot of the staff sidebar.</td></tr>
+  </table>
+
+  <h2>UX rules in place</h2>
+  <table>
+    <tr><th>Rule</th><th style="width:16%">Status</th></tr>
+    <tr><td>Staff screens fill the full width: fixed sidebar, fluid 12-column content, 4 stat cards per row on wide screens, 2 on laptops, 1 on phones</td><td><span class="chip done">Done</span></td></tr>
+    <tr><td>Sidebar becomes a slide-out menu on phones and tablets</td><td><span class="chip done">Done</span></td></tr>
+    <tr><td>One maroon main action per screen; outline style for secondary actions</td><td><span class="chip done">Done</span></td></tr>
+    <tr><td>Statuses pair colour, icon and text</td><td><span class="chip done">Done</span></td></tr>
+    <tr><td>Empty states explain what will appear; toasts confirm sign-in and sign-out</td><td><span class="chip done">Done</span></td></tr>
+    <tr><td>Confirmation dialog and countdown chip components ready for reveals and releases</td><td><span class="chip done">Ready</span></td></tr>
+    <tr><td>Quick exit button always visible on survivor screens; Esc does the same; it ends the session, clears the tab and replaces history so Back does not return</td><td><span class="chip done">Done</span></td></tr>
+    <tr><td>Neutral tab title ("Notes") on survivor screens; language choice is never saved on the device</td><td><span class="chip done">Done</span></td></tr>
+    <tr><td>Emergency line 112 one tap away on the survivor home</td><td><span class="chip done">Done</span></td></tr>
+    <tr><td>Gold focus ring for keyboard users; reduced motion respected</td><td><span class="chip done">Done</span></td></tr>
+  </table>
+
+  <h2>Checks run</h2>
+  <table>
+    <tr><th>Check</th><th>Result</th><th style="width:16%">Status</th></tr>
+    <tr><td>Production build</td><td>Builds with no errors</td><td><span class="chip done">Pass</span></td></tr>
+    <tr><td>Browser console after a fresh load</td><td>No errors</td><td><span class="chip done">Pass</span></td></tr>
+    <tr><td>All four roles signed in through the real API and screenshotted at 1440 × 900</td><td>Each lands on its own portal</td><td><span class="chip done">Pass</span></td></tr>
+    <tr><td>Phone layout at 390 px (sign-in and survivor home)</td><td>Sign-in form visible without scrolling far; no sideways scroll</td><td><span class="chip done">Pass</span></td></tr>
+    <tr><td>Hindi and Kannada text</td><td>Renders correctly with bundled fonts</td><td><span class="chip done">Pass</span></td></tr>
+    <tr><td>Logo file compared with the original</td><td>Identical (same SHA-256)</td><td><span class="chip done">Pass</span></td></tr>
+  </table>
+  <p class="muted">Fixed during the phase: the crowd on the sign-in screen was too dark, the sign-in form sat below the fold on phones, a badge number wrapped awkwardly and a long name wrapped in the top bar.</p>
+
+  <h2>Not done yet</h2>
+  <ul>
+    <li>Counts on the stat cards show 0 until cases exist (Phase 3 onwards).</li>
+    <li>The complaint form, OCR and tracker (Phase 3); case lists, allocation and reveals (Phase 4); redaction (Phase 5); honeypot and audit viewer (Phase 6).</li>
+    <li>Quick exit opens a weather search on Google; this needs internet to show.</li>
+  </ul>
+
+  <div class="next">
+    <h3>Next: Phase 3, survivor portal</h3>
+    <p>The guided complaint form in three steps, photo or scan upload with in-browser OCR in English, Hindi and Kannada, a side-by-side confirm, identity fields sealed in the vault, tokenised narrative, the "in danger now" flag and the live status tracker.</p>
+  </div>
+</main>
+</body>
+</html>

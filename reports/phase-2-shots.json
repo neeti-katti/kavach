@@ -1,0 +1,18 @@
+{
+  "base": "http://localhost:5173",
+  "outDir": "img",
+  "shots": [
+    { "file": "p2-login.png", "path": "/", "width": 1440, "height": 900, "wait": 2500 },
+    { "file": "p2-officer.png", "path": "/police", "login": { "username": "kavitha.rao" }, "wait": 2500 },
+    { "file": "p2-supervisor.png", "path": "/police", "login": { "username": "prakash.reddy" }, "wait": 2500 },
+    { "file": "p2-security.png", "path": "/security", "login": { "username": "anita.desai" }, "wait": 2500 },
+    { "file": "p2-survivor.png", "path": "/survivor", "login": { "phone": "9000000001" }, "wait": 2000 },
+    { "file": "p2-survivor-hi.png", "path": "/survivor", "login": { "phone": "9000000001" }, "wait": 1500,
+      "eval": "[...document.querySelectorAll('button')].find(b => b.textContent.trim() === 'हिं').click()" },
+    { "file": "p2-survivor-kn.png", "path": "/survivor/status", "login": { "phone": "9000000001" }, "wait": 1500,
+      "eval": "[...document.querySelectorAll('button')].find(b => b.textContent.trim() === 'ಕ').click()" },
+    { "file": "p2-placeholder.png", "path": "/police/allocation", "login": { "username": "prakash.reddy" }, "wait": 2000 },
+    { "file": "p2-survivor-mobile.png", "path": "/survivor", "login": { "phone": "9000000001" }, "width": 390, "height": 844, "mobile": true, "wait": 2000 },
+    { "file": "p2-login-mobile.png", "path": "/", "width": 390, "height": 844, "mobile": true, "wait": 2000 }
+  ]
+}
