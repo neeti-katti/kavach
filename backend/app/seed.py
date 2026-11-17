@@ -103,6 +103,20 @@ def ensure_honey() -> None:
         )
 
 
+TABLES = ["public_copies", "calls", "reveals", "vault_files", "vault_fields", "alerts", "audit_log", "challenges", "sessions",
+          "cases", "blocked_clients", "users", "stations"]
+
+
+def reset_in_place() -> None:
+    """Start over without stopping the server (on Windows a running server keeps the database file open)."""
+    with get_db() as db:
+        for table in TABLES:
+            db.execute(f"DROP TABLE IF EXISTS {table}")
+    init_schema()
+    seed_if_empty()
+    ensure_honey()
+
+
 def seed_if_empty() -> bool:
     with get_db() as db:
         if db.execute("SELECT COUNT(*) FROM stations").fetchone()[0]:

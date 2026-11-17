@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Kavach · Phase 7 Report: Demo, measurement and final summary</title>
+<link rel="stylesheet" href="report.css">
+<style>
+  .r100 { color: #0E5E06; font-weight: 600; } .rmid { color: #7A4D00; font-weight: 600; } .rlow { color: #8E2A2E; font-weight: 600; }
+  td.num, th.num { text-align: center; }
+</style>
+</head>
+<body>
+<header class="cover">
+  <div class="logo"><img src="../frontend/public/brand/kavach-logo.webp" alt="Kavach logo"></div>
+  <div>
+    <p class="eyebrow">Build report · Phase 7 of 7 · Final</p>
+    <h1>Demo run-through, measured redaction, and the finished Kavach</h1>
+    <p class="meta">17 November 2026 · Time box 10 minutes · <span class="chip done">Complete</span></p>
+  </div>
+</header>
+<div class="tricolour"></div>
+
+<main class="page">
+  <p class="lead">Kavach is finished for the hackathon. The 7-minute demo ran start to finish without touching code: a Kannada complaint photographed and read, routed to a child-trained woman officer, investigated and sealed, released as a public copy with risk 0, and a rogue officer and a probing script caught. On 90 new synthetic complaints, every planted identifier was removed when the survivor filled in the form. Without the form, 56 to 82 percent were, and that gap is reported as found.</p>
+
+  <div class="stats">
+    <div class="stat"><b>7 / 7</b><span>phases built, each committed and reported</span></div>
+    <div class="stat"><b>100%</b><span>identifiers removed when she fills in the form (90 complaints, 3 languages)</span></div>
+    <div class="stat"><b>56–82%</b><span>removed with no form details at all (worst case)</span></div>
+    <div class="stat"><b>0</b><span>identity values in the released PDF's text</span></div>
+  </div>
+
+  <h2>The demo, run end to end</h2>
+  <p>Everything below ran in a real browser against the running app, scripted exactly as a presenter would click. Nothing was edited between steps.</p>
+  <h3>1. The survivor files in Kannada, from a photo</h3>
+  <div class="grid2">
+    <figure><img src="img/p7-kn-step1.png" alt="Step 1 in Kannada"><figcaption>Kannada interface; "Fill sample details (demo)" fills synthetic details.</figcaption></figure>
+    <figure><img src="img/p7-kn-sent.png" alt="Complaint sent"><figcaption>Sent: case <code>KV-2026-BLR-0009</code>.</figcaption></figure>
+  </div>
+  <figure><img src="img/p7-kn-ocr.png" alt="Kannada OCR"><figcaption>"Use a sample page (demo)" draws a Kannada complaint as an image; OCR reads it word for word beside the photo.</figcaption></figure>
+  <figure><img src="img/p7-kn-review.png" alt="Kannada review"><figcaption>Before sending, she sees what her officer will read: name, address, school, father and phone replaced, including the forms with Kannada endings joined on ("ಹೊಸಹಳ್ಳಿಯ").</figcaption></figure>
+
+  <h3>2. The officer works the case without her identity</h3>
+  <div class="grid2">
+    <figure><img src="img/p7-kn-police.png" alt="Police view of Kannada complaint"><figcaption>The Kannada complaint as police see it. Allocated to Insp. Kavitha Rao, the child-trained woman officer.</figcaption></figure>
+    <figure><img src="img/p7-reveal.png" alt="Reveal"><figcaption>On the English case: a masked call, then her name opened for one task for 60 seconds under a watermark. The officer then filed the report, which sealed the case.</figcaption></figure>
+  </div>
+
+  <h3>3. The public copy</h3>
+  <figure><img src="img/p7-studio.png" alt="Redaction Studio"><figcaption>Name-only redaction scores 45 and is blocked; Kavach scores 0 and is released. The printed PDF was checked character by character: none of 9 identity values appear.</figcaption></figure>
+
+  <h3>4. The honeypot catches an insider and a script</h3>
+  <div class="grid2">
+    <figure><img src="img/p7-rogue.png" alt="Rogue officer"><figcaption>SI Rohit Sharma opens a decoy case: signed out and locked at once.</figcaption></figure>
+    <figure><img src="img/p7-security.png" alt="Security monitor"><figcaption>The security monitor: decoy case and decoy endpoint alerts (the endpoint was probed with <code>curl</code>), one account locked, one client blocked, audit chain intact.</figcaption></figure>
+  </div>
+  <figure><img src="img/p7-survivor-status.png" alt="Survivor tracker"><figcaption>Back on the survivor's side: three complaints, each with its officer and stage.</figcaption></figure>
+
+  <h2>Measured: how much does the redaction catch?</h2>
+  <p>90 synthetic complaints (30 each in English, Hindi and Kannada) were written for this test from new templates and new invented people, schools, villages and numbers. None were used to tune the rules, and the results below are reported as measured. "Removed" means the planted text is gone from the public copy. "Controls kept" counts ordinary case words that should survive, such as "bus stand", "the accused" and "ಆರೋಪಿ", and so shows any over-redaction.</p>
+
+  <h3>When she fills in the form (the normal flow)</h3>
+  <table>
+    <tr><th>Language</th><th class="num">Name</th><th class="num">Father</th><th class="num">Mother</th><th class="num">School</th><th class="num">Village</th><th class="num">Phone</th><th class="num">Age</th><th class="num">Overall</th><th class="num">Controls kept</th></tr>
+    <tr><td>English</td><td class="num r100">100%</td><td class="num r100">100%</td><td class="num r100">100%</td><td class="num r100">100%</td><td class="num r100">100%</td><td class="num r100">100%</td><td class="num r100">100%</td><td class="num r100">100%</td><td class="num r100">100%</td></tr>
+    <tr><td>Hindi</td><td class="num r100">100%</td><td class="num r100">100%</td><td class="num r100">100%</td><td class="num r100">100%</td><td class="num r100">100%</td><td class="num r100">100%</td><td class="num r100">100%</td><td class="num r100">100%</td><td class="num r100">100%</td></tr>
+    <tr><td>Kannada</td><td class="num r100">100%</td><td class="num r100">100%</td><td class="num r100">100%</td><td class="num r100">100%</td><td class="num r100">100%</td><td class="num r100">100%</td><td class="num r100">100%</td><td class="num r100">100%</td><td class="num r100">100%</td></tr>
+  </table>
+  <p class="muted">This measures matching what she typed, in the same script. Real spelling variation (a nickname, a different transliteration) is not in this set.</p>
+
+  <h3>With nothing in the form (worst case: rules only)</h3>
+  <table>
+    <tr><th>Language</th><th class="num">Name</th><th class="num">Father</th><th class="num">Mother</th><th class="num">School</th><th class="num">Village</th><th class="num">Phone</th><th class="num">Age</th><th class="num">Overall</th><th class="num">Controls kept</th></tr>
+    <tr><td>English</td><td class="num rlow">33%</td><td class="num r100">100%</td><td class="num r100">100%</td><td class="num r100">100%</td><td class="num rmid">50%</td><td class="num r100">100%</td><td class="num r100">100%</td><td class="num rmid">82%</td><td class="num r100">100%</td></tr>
+    <tr><td>Hindi</td><td class="num rlow">33%</td><td class="num r100">100%</td><td class="num r100">100%</td><td class="num rmid">77%</td><td class="num rmid">50%</td><td class="num r100">100%</td><td class="num r100">100%</td><td class="num rmid">78%</td><td class="num r100">100%</td></tr>
+    <tr><td>Kannada</td><td class="num rlow">33%</td><td class="num rlow">0%</td><td class="num rlow">0%</td><td class="num rmid">67%</td><td class="num rmid">75%</td><td class="num r100">100%</td><td class="num r100">100%</td><td class="num rlow">56%</td><td class="num r100">100%</td></tr>
+  </table>
+  <div class="callout">
+    <p><b>What this says.</b> Phone numbers and ages are always caught by pattern. A name is caught only when she introduces herself ("my name is…", in any of the three languages), not when it starts a sentence. Kannada relatives' names have no pattern yet. Some Hindi school names ("विद्या मंदिर") and villages without a telltale suffix slip through.</p>
+    <p style="margin:0"><b>Why the design still holds.</b> In Kavach the form is the normal path, and it tags her details at the source. Every public copy is re-scored with the same detector, medium risk goes to a supervisor, and Kavach never claims zero risk. The misses above are the next rules to write, and they should be checked on another new set rather than this one.</p>
+  </div>
+
+  <h2>Added in this phase</h2>
+  <table>
+    <tr><th style="width:30%">Change</th><th>Why</th></tr>
+    <tr><td>Self-introduced names in English, Hindi and Kannada</td><td>She may type her name in English in the form but write it in Kannada in a photographed complaint. "ನನ್ನ ಹೆಸರು …" now catches it, and then every other mention of it.</td></tr>
+    <tr><td>Kannada and Hindi word endings</td><td>"ಹೊಸಹಳ್ಳಿಯ" (of Hosahalli) was missed by exact matching; tagged values now match with an ending attached.</td></tr>
+    <tr><td>Demo loader: <code>python -m app.demo</code></td><td>Resets and loads three cases in three states (in progress, escalated, sealed with a released copy) while the server keeps running.</td></tr>
+    <tr><td>"Fill sample details" and "Use a sample page" (demo mode only)</td><td>Fills synthetic details and draws a sample complaint page in the chosen language, so OCR can be shown on stage with no prepared photo.</td></tr>
+    <tr><td>Evaluation: <code>python -m eval.evaluate</code></td><td>The measurement above; results saved to <code>reports/eval-results.json</code>.</td></tr>
+    <tr><td>README</td><td>How to run, demo accounts, the 7-minute demo step by step, what is where, and limits.</td></tr>
+  </table>
+
+  <h2>The whole project</h2>
+  <table>
+    <tr><th style="width:4%">#</th><th style="width:20%">Phase</th><th>Delivered</th><th style="width:20%">Checked</th></tr>
+    <tr><td>1</td><td>Foundation</td><td>FastAPI and SQLite, a field-by-field AES-256-GCM vault, OTP and two-factor sign-in, a hash-chained audit log</td><td>13/13 checks</td></tr>
+    <tr><td>2</td><td>UI shell</td><td>Maroon, gold and tricolour design; hand-drawn crowd, flags, chakra and India Gate artwork; full-width layouts; logo unchanged</td><td>Screens at 1440 px and on phones</td></tr>
+    <tr><td>3</td><td>Survivor portal</td><td>Three-step form in 3 languages, photo OCR, "what your officer will see", tracker, quick exit</td><td>2 complaints end to end</td></tr>
+    <tr><td>4</td><td>Police side</td><td>Allocation (women officers first), case sheet with "Survivor A", masked calls, 60-second watermarked reveals, seal on submission</td><td>30/30 API checks</td></tr>
+    <tr><td>5</td><td>Redaction</td><td>Six-layer engine, risk-gated release, Redaction Studio, public and court copies, printable PDF</td><td>16/16; PDF text clean</td></tr>
+    <tr><td>6</td><td>Honeypot</td><td>Decoy cases, decoy endpoints, honey credentials, wrong-case lock-out, rate limit, live security monitor</td><td>22/22 attack checks</td></tr>
+    <tr><td>7</td><td>Demo and measurement</td><td>Demo loader, sample-page OCR, held-out evaluation, README, full run-through</td><td>Demo ran with no code edits</td></tr>
+  </table>
+
+  <h2>Limits to say out loud</h2>
+  <ul>
+    <li>Detection is rule-based. Without form details, names and places without a recognisable pattern can slip through (table above).</li>
+    <li>A survivor's own complaint text can still show her exact age to the officer (for example "ನನಗೆ 15 ವರ್ಷ"). The case sheet itself shows only "minor" or "adult", and the public copy removes the age.</li>
+    <li>OCR runs in the browser but downloads its engine and language data from a public CDN. It was tested on printed pages, not handwriting.</li>
+    <li>Calls, SMS and OTP are simulated. There is no translation.</li>
+    <li>On one demo machine all requests come from localhost, so blocked clients are also told apart by browser signature.</li>
+    <li>The data is synthetic throughout. Real pilots need practitioners to review the synthetic set, and the legal questions parked at the start need answers.</li>
+  </ul>
+
+  <div class="next">
+    <h3>Run it</h3>
+    <p>Start <code>kavach-api</code> and <code>kavach-web</code> (or see the README), then run <code>.venv\Scripts\python -m app.demo</code> in <code>kavach/backend</code> and open <code>http://localhost:5173</code>. Staff password <code>kavach@123</code>; survivor phone <code>9000000001</code>.</p>
+  </div>
+</main>
+</body>
+</html>

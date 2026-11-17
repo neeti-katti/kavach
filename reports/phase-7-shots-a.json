@@ -1,0 +1,46 @@
+{
+  "base": "http://localhost:5173",
+  "outDir": "img",
+  "shots": [
+    {
+      "path": "/survivor/new", "login": { "phone": "9000000001" }, "wait": 2500,
+      "steps": [
+        { "eval": "window.__starts = (p) => { const b = [...document.querySelectorAll('button')].find(b => b.textContent.trim().startsWith(p) && !b.disabled); if (!b) throw new Error('missing button ' + p); b.click(); }; __starts('ಕ'); true", "after": 600 },
+        { "eval": "__starts('Fill sample details'); true", "after": 600 },
+        { "shot": "p7-kn-step1.png" },
+        { "eval": "__starts('ಮುಂದೆ'); true", "after": 900 },
+        { "eval": "__starts('ಫೋಟೋ'); true", "after": 700 },
+        { "eval": "__starts('Use a sample page'); true", "after": 1500 },
+        { "waitFor": "!!document.getElementById('f-ocr') && document.getElementById('f-ocr').value.length > 40", "timeout": 240000 },
+        { "wait": 600, "shot": "p7-kn-ocr.png", "full": true, "log": "document.getElementById('f-ocr').value" },
+        { "eval": "document.getElementById('f-ocr-ok').click(); __starts('ಮುಂದೆ'); true", "after": 2500 },
+        { "shot": "p7-kn-review.png", "full": true, "log": "[...document.querySelectorAll('mark')].map(m => m.textContent)" },
+        { "eval": "document.getElementById('f-confirm').click(); __starts('ದೂರು ಕಳುಹಿಸಿ'); true" },
+        { "waitFor": "document.body.textContent.includes('KV-2026-BLR-0009')", "timeout": 30000 },
+        { "wait": 600, "shot": "p7-kn-sent.png" }
+      ]
+    },
+    {
+      "path": "/police/cases", "login": { "username": "kavitha.rao" }, "wait": 3000,
+      "steps": [
+        { "shot": "p7-officer-cases.png" },
+        { "navigate": "/police/cases/KV-2026-BLR-0009", "after": 3000 },
+        { "shot": "p7-kn-police.png", "full": true, "log": "document.querySelector('mark')?.parentElement?.textContent" },
+        { "navigate": "/police/cases/KV-2026-BLR-0007", "after": 3000 },
+        { "eval": "window.__set = (id, v) => { const el = document.getElementById(id); const proto = el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : el.tagName === 'SELECT' ? HTMLSelectElement.prototype : HTMLInputElement.prototype; Object.getOwnPropertyDescriptor(proto, 'value').set.call(el, v); el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); }; window.__btn = (t) => { const b = [...document.querySelectorAll('button')].find(b => b.textContent.trim() === t && !b.disabled); if (!b) throw new Error('missing button ' + t); b.click(); }; window.__row = (label, t) => { const row = [...document.querySelectorAll('div')].find(d => d.children.length === 2 && d.firstElementChild.textContent.trim() === label); const b = [...row.querySelectorAll('button')].find(b => b.textContent.trim() === t); if (!b) throw new Error('missing ' + t); b.click(); }; __btn('Call survivor'); true", "after": 1500 },
+        { "eval": "__btn('Done'); __row(\"Survivor's name\", 'Request'); true", "after": 800 },
+        { "eval": "__set('rv-reason', 'Recording her statement at the station at 4 pm today'); __btn('Send request'); true", "after": 1500 },
+        { "eval": "__row(\"Survivor's name\", 'Open'); true", "after": 2000 },
+        { "shot": "p7-reveal.png" },
+        { "eval": "__btn('Close now'); __btn('Start investigation'); true", "after": 1800 },
+        { "eval": "__btn('File final report'); true", "after": 700 },
+        { "eval": "__set('rp-summary', 'Statement of Kavya recorded on 13 November with her mother Lata Rao present. The accused, who runs the phone repair shop, was identified from CCTV at the bus stop and arrested.'); __btn('File and seal'); true", "after": 2500 },
+        { "eval": "__btn('Public copy'); true", "after": 3500 },
+        { "shot": "p7-studio.png", "full": true, "log": "[...document.querySelectorAll('p.font-display')].map(p => p.textContent)" },
+        { "eval": "__btn('Release public copy'); true", "after": 3500 },
+        { "shot": "p7-print.png", "full": true, "pdf": "p7-public-copy.pdf" }
+      ]
+    },
+    { "file": "p7-rogue.png", "path": "/police/cases/KV-2026-BLR-0003", "login": { "username": "rohit.sharma" }, "wait": 4000 }
+  ]
+}

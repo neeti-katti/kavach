@@ -1,0 +1,280 @@
+{
+  "complaints": 90,
+  "per_language": 30,
+  "results": {
+    "tagged": {
+      "English": {
+        "by_category": {
+          "name": {
+            "removed": 30,
+            "planted": 30,
+            "recall": 1.0
+          },
+          "father": {
+            "removed": 20,
+            "planted": 20,
+            "recall": 1.0
+          },
+          "mother": {
+            "removed": 20,
+            "planted": 20,
+            "recall": 1.0
+          },
+          "school": {
+            "removed": 30,
+            "planted": 30,
+            "recall": 1.0
+          },
+          "village": {
+            "removed": 30,
+            "planted": 30,
+            "recall": 1.0
+          },
+          "phone": {
+            "removed": 30,
+            "planted": 30,
+            "recall": 1.0
+          },
+          "age": {
+            "removed": 30,
+            "planted": 30,
+            "recall": 1.0
+          }
+        },
+        "overall": {
+          "removed": 190,
+          "planted": 190,
+          "recall": 1.0
+        },
+        "controls_kept": 1.0
+      },
+      "Hindi": {
+        "by_category": {
+          "name": {
+            "removed": 30,
+            "planted": 30,
+            "recall": 1.0
+          },
+          "father": {
+            "removed": 20,
+            "planted": 20,
+            "recall": 1.0
+          },
+          "mother": {
+            "removed": 20,
+            "planted": 20,
+            "recall": 1.0
+          },
+          "school": {
+            "removed": 30,
+            "planted": 30,
+            "recall": 1.0
+          },
+          "village": {
+            "removed": 20,
+            "planted": 20,
+            "recall": 1.0
+          },
+          "phone": {
+            "removed": 30,
+            "planted": 30,
+            "recall": 1.0
+          },
+          "age": {
+            "removed": 20,
+            "planted": 20,
+            "recall": 1.0
+          }
+        },
+        "overall": {
+          "removed": 170,
+          "planted": 170,
+          "recall": 1.0
+        },
+        "controls_kept": 1.0
+      },
+      "Kannada": {
+        "by_category": {
+          "name": {
+            "removed": 30,
+            "planted": 30,
+            "recall": 1.0
+          },
+          "father": {
+            "removed": 20,
+            "planted": 20,
+            "recall": 1.0
+          },
+          "mother": {
+            "removed": 20,
+            "planted": 20,
+            "recall": 1.0
+          },
+          "school": {
+            "removed": 30,
+            "planted": 30,
+            "recall": 1.0
+          },
+          "village": {
+            "removed": 20,
+            "planted": 20,
+            "recall": 1.0
+          },
+          "phone": {
+            "removed": 30,
+            "planted": 30,
+            "recall": 1.0
+          },
+          "age": {
+            "removed": 20,
+            "planted": 20,
+            "recall": 1.0
+          }
+        },
+        "overall": {
+          "removed": 170,
+          "planted": 170,
+          "recall": 1.0
+        },
+        "controls_kept": 1.0
+      }
+    },
+    "untagged": {
+      "English": {
+        "by_category": {
+          "name": {
+            "removed": 10,
+            "planted": 30,
+            "recall": 0.333
+          },
+          "father": {
+            "removed": 20,
+            "planted": 20,
+            "recall": 1.0
+          },
+          "mother": {
+            "removed": 20,
+            "planted": 20,
+            "recall": 1.0
+          },
+          "school": {
+            "removed": 30,
+            "planted": 30,
+            "recall": 1.0
+          },
+          "village": {
+            "removed": 15,
+            "planted": 30,
+            "recall": 0.5
+          },
+          "phone": {
+            "removed": 30,
+            "planted": 30,
+            "recall": 1.0
+          },
+          "age": {
+            "removed": 30,
+            "planted": 30,
+            "recall": 1.0
+          }
+        },
+        "overall": {
+          "removed": 155,
+          "planted": 190,
+          "recall": 0.816
+        },
+        "controls_kept": 1.0
+      },
+      "Hindi": {
+        "by_category": {
+          "name": {
+            "removed": 10,
+            "planted": 30,
+            "recall": 0.333
+          },
+          "father": {
+            "removed": 20,
+            "planted": 20,
+            "recall": 1.0
+          },
+          "mother": {
+            "removed": 20,
+            "planted": 20,
+            "recall": 1.0
+          },
+          "school": {
+            "removed": 23,
+            "planted": 30,
+            "recall": 0.767
+          },
+          "village": {
+            "removed": 10,
+            "planted": 20,
+            "recall": 0.5
+          },
+          "phone": {
+            "removed": 30,
+            "planted": 30,
+            "recall": 1.0
+          },
+          "age": {
+            "removed": 20,
+            "planted": 20,
+            "recall": 1.0
+          }
+        },
+        "overall": {
+          "removed": 133,
+          "planted": 170,
+          "recall": 0.782
+        },
+        "controls_kept": 1.0
+      },
+      "Kannada": {
+        "by_category": {
+          "name": {
+            "removed": 10,
+            "planted": 30,
+            "recall": 0.333
+          },
+          "father": {
+            "removed": 0,
+            "planted": 20,
+            "recall": 0.0
+          },
+          "mother": {
+            "removed": 0,
+            "planted": 20,
+            "recall": 0.0
+          },
+          "school": {
+            "removed": 20,
+            "planted": 30,
+            "recall": 0.667
+          },
+          "village": {
+            "removed": 15,
+            "planted": 20,
+            "recall": 0.75
+          },
+          "phone": {
+            "removed": 30,
+            "planted": 30,
+            "recall": 1.0
+          },
+          "age": {
+            "removed": 20,
+            "planted": 20,
+            "recall": 1.0
+          }
+        },
+        "overall": {
+          "removed": 95,
+          "planted": 170,
+          "recall": 0.559
+        },
+        "controls_kept": 1.0
+      }
+    }
+  }
+}

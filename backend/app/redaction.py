@@ -14,7 +14,7 @@ The detector never returns the text it found, only where it is and what kind it 
 import re
 from dataclasses import dataclass
 
-from .intake import _variants
+from .intake import _variants, boundary_pattern, self_named
 
 # kind -> (points, token or None for generalised phrases, label, layer)
 KINDS = {
@@ -132,8 +132,8 @@ def detect(text: str, ctx: dict) -> list[Span]:
     spans: list[Span] = []
     add = lambda s, e, k, rep=None: spans.append(Span(s, e, k, rep if rep is not None else KINDS[k][1]))  # noqa: E731
 
-    for variant, kind in ctx["tagged"]:
-        for m in re.finditer(r"(?<!\w)" + re.escape(variant) + r"(?!\w)", text, re.IGNORECASE):
+    for variant, kind in ctx["tagged"] + [(n, "name") for n in self_named(text)]:
+        for m in re.finditer(boundary_pattern(variant), text, re.IGNORECASE):
             add(m.start(), m.end(), kind)
     for kind, rx in PATTERNS:
         for m in rx.finditer(text):

@@ -44,16 +44,47 @@ def _variants(field: str, value: str) -> list[str]:
     return [v for v in out if v]
 
 
+# "My name is …" in each language. A survivor may type her name in English in the form but write it in Kannada or
+# Hindi in a photographed complaint; these catch the name in the text itself, and then every other mention of it.
+SELF_NAME = [
+    re.compile(r"\b[Mm]y name is\s+([A-Z][a-z]+(?:\s[A-Z][a-z]+)?)"),
+    re.compile(r"मेरा नाम\s+([^\s।,.]+(?:\s[^\s।,.]+)?)\s+(?:है|हैं)"),
+    re.compile(r"ನನ್ನ ಹೆಸರು\s+([^\s.,।]+(?:\s[^\s.,।]+)?)"),
+]
+SELF_NAME_STOP = {"है", "हैं", "ಆಗಿದೆ", "ಇದೆ"}
+
+
+def boundary_pattern(value: str) -> str:
+    """Match a value as a whole word. In Hindi and Kannada a case ending is often joined to the word
+    ("ಹೊಸಹಳ್ಳಿಯ" = "of Hosahalli"), so for non-Latin values the end of the match may run into such an ending."""
+    if value.isascii():
+        return r"(?<!\w)" + re.escape(value) + r"(?!\w)"
+    return r"(?<!\w)" + re.escape(value)
+
+
+def self_named(text: str | None) -> list[str]:
+    """Names the writer gives for herself, plus the first name on its own."""
+    out = []
+    for rx in SELF_NAME:
+        for m in rx.finditer(text or ""):
+            words = [w for w in m.group(1).split() if w not in SELF_NAME_STOP]
+            if words:
+                out.append(" ".join(words))
+                if len(words) > 1 and len(words[0]) >= 3:
+                    out.append(words[0])
+    return out
+
+
 def tokenize(text: str | None, identity: dict) -> str | None:
     if not text:
         return text
-    pairs = []
+    pairs = [(name, "[SURVIVOR_NAME]") for name in self_named(text)]
     for field, value in identity.items():
         if field in TOKENS and value not in (None, ""):
             pairs.extend((variant, TOKENS[field]) for variant in _variants(field, str(value)))
     # Longest first, so "Kavya Rao" becomes one token before "Kavya" is looked at on its own.
     for variant, token in sorted(pairs, key=lambda p: len(p[0]), reverse=True):
-        text = re.sub(r"(?<!\w)" + re.escape(variant) + r"(?!\w)", token, text, flags=re.IGNORECASE)
+        text = re.sub(boundary_pattern(variant), token, text, flags=re.IGNORECASE)
     text = EMAIL_RE.sub("[EMAIL]", text)
     text = AADHAAR_RE.sub("[ID_NUMBER]", text)
     text = PHONE_RE.sub("[PHONE]", text)

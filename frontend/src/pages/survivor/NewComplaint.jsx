@@ -1,7 +1,8 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { SAMPLE_DETAILS, samplePage } from '../../demoSamples'
 import { Link, useNavigate } from 'react-router-dom'
 import {
-  ArrowLeft, ArrowRight, CircleCheck, EyeOff, FileImage, ListChecks, LockKeyhole, PenLine, RotateCcw, ScanLine, Send, Siren, Upload,
+  ArrowLeft, ArrowRight, CircleCheck, EyeOff, FileImage, ListChecks, LockKeyhole, PenLine, RotateCcw, ScanLine, Send, Siren, Sparkles, Upload,
 } from 'lucide-react'
 import { api } from '../../api'
 import { TokenText } from '../../components/TokenText'
@@ -78,6 +79,20 @@ export default function NewComplaint() {
   const [sending, setSending] = useState(false)
   const [sendError, setSendError] = useState('')
   const [sent, setSent] = useState(null)
+  const [demo, setDemo] = useState(false)
+  useEffect(() => { api('/demo/accounts').then(() => setDemo(true)).catch(() => {}) }, [])
+
+  function fillSample() {
+    setForm((f) => ({ ...f, identity: { ...SAMPLE_DETAILS[lang].identity } }))
+  }
+
+  async function useSamplePage() {
+    const s = SAMPLE_DETAILS[complaintLang]
+    setForm((f) => ({ ...f, incident: f.incident.locality ? f.incident : { ...s.incident }, accused: f.accused || s.accused }))
+    const dataUrl = await samplePage(complaintLang)
+    setForm((f) => ({ ...f, scanImage: dataUrl, ocrText: '', ocrChecked: false }))
+    runOcr(dataUrl)
+  }
 
   const complaintLang = form.language ?? lang
   const setId = (k) => (e) => setForm((f) => ({ ...f, identity: { ...f.identity, [k]: e.target.value } }))
@@ -212,9 +227,12 @@ export default function NewComplaint() {
 
       {step === 0 && (
         <Card className="p-6 lg:p-8">
-          <p className="mb-6 flex items-start gap-3 rounded-xl border border-gold/25 bg-gold/[.06] px-4 py-3 text-sm text-muted">
-            <LockKeyhole size={18} className="mt-0.5 shrink-0 text-gold" aria-hidden />{t.aboutHint}
-          </p>
+          <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
+            <p className="flex flex-1 items-start gap-3 rounded-xl border border-gold/25 bg-gold/[.06] px-4 py-3 text-sm text-muted">
+              <LockKeyhole size={18} className="mt-0.5 shrink-0 text-gold" aria-hidden />{t.aboutHint}
+            </p>
+            {demo && <Button type="button" size="sm" variant="ghost" icon={Sparkles} onClick={fillSample}>Fill sample details (demo)</Button>}
+          </div>
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
             <div className="md:col-span-2"><Field label={t.fName} id="f-name" error={errors.name}><input id="f-name" className={inputClass} autoComplete="off" value={id.name} onChange={setId('name')} /></Field></div>
             <Field label={t.fAge} id="f-age" error={errors.age}><input id="f-age" className={inputClass} inputMode="numeric" value={id.age} onChange={setId('age')} /></Field>
@@ -284,6 +302,11 @@ export default function NewComplaint() {
                     <span className="text-lg font-semibold text-text">{t.scanPick}</span>
                     <span className="max-w-md text-sm text-muted">{t.scanHint}</span>
                   </button>
+                )}
+                {!form.scanImage && demo && (
+                  <Button type="button" size="sm" variant="ghost" icon={Sparkles} className="self-start" onClick={useSamplePage}>
+                    Use a sample page in {LANGS.find((l) => l.id === complaintLang)?.name} (demo)
+                  </Button>
                 )}
                 {form.scanImage && (
                   <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
