@@ -28,7 +28,7 @@ def _actor(db: sqlite3.Connection, uid: int | None) -> dict | None:
 
 
 @router.get("/summary")
-def summary(user: dict = Depends(security_only), db: sqlite3.Connection = Depends(db_dep)):
+def summary(user: dict = Depends(security_only), db: sqlite3.Connection = Depends(db_dep, scope="function")):
     today = datetime.now(timezone.utc).date().isoformat()
     q = lambda sql, *a: db.execute(sql, a).fetchone()[0]  # noqa: E731
     ok, bad_id = audit.verify_chain(db)
@@ -47,13 +47,13 @@ def summary(user: dict = Depends(security_only), db: sqlite3.Connection = Depend
 
 
 @router.get("/alerts")
-def alerts(user: dict = Depends(security_only), db: sqlite3.Connection = Depends(db_dep)):
+def alerts(user: dict = Depends(security_only), db: sqlite3.Connection = Depends(db_dep, scope="function")):
     rows = db.execute("SELECT * FROM alerts ORDER BY id DESC LIMIT 100").fetchall()
     return [{**dict(r), "resolved": bool(r["resolved"]), "actor": _actor(db, r["actor_id"])} for r in rows]
 
 
 @router.post("/alerts/{alert_id}/resolve")
-def resolve(alert_id: int, user: dict = Depends(security_only), db: sqlite3.Connection = Depends(db_dep)):
+def resolve(alert_id: int, user: dict = Depends(security_only), db: sqlite3.Connection = Depends(db_dep, scope="function")):
     if not db.execute("UPDATE alerts SET resolved = 1 WHERE id = ? AND resolved = 0", (alert_id,)).rowcount:
         raise HTTPException(404, "Not found")
     audit.log(db, "alert_resolved", actor=user, detail=f"alert={alert_id}")
@@ -61,14 +61,14 @@ def resolve(alert_id: int, user: dict = Depends(security_only), db: sqlite3.Conn
 
 
 @router.get("/locked")
-def locked(user: dict = Depends(security_only), db: sqlite3.Connection = Depends(db_dep)):
+def locked(user: dict = Depends(security_only), db: sqlite3.Connection = Depends(db_dep, scope="function")):
     rows = db.execute("SELECT u.id, u.display_name, u.badge, u.role, u.locked_reason, s.name AS station FROM users u "
                       "LEFT JOIN stations s ON s.id = u.station_id WHERE u.locked = 1 AND u.is_honey = 0 ORDER BY u.id").fetchall()
     return [dict(r) for r in rows]
 
 
 @router.post("/users/{user_id}/unlock")
-def unlock(user_id: int, user: dict = Depends(security_only), db: sqlite3.Connection = Depends(db_dep)):
+def unlock(user_id: int, user: dict = Depends(security_only), db: sqlite3.Connection = Depends(db_dep, scope="function")):
     if not db.execute("UPDATE users SET locked = 0, locked_reason = NULL WHERE id = ? AND locked = 1", (user_id,)).rowcount:
         raise HTTPException(404, "Not found")
     audit.log(db, "account_unlocked", actor=user, detail=f"user={user_id}")
@@ -76,12 +76,12 @@ def unlock(user_id: int, user: dict = Depends(security_only), db: sqlite3.Connec
 
 
 @router.get("/blocked")
-def blocked(user: dict = Depends(security_only), db: sqlite3.Connection = Depends(db_dep)):
+def blocked(user: dict = Depends(security_only), db: sqlite3.Connection = Depends(db_dep, scope="function")):
     return [dict(r) for r in db.execute("SELECT * FROM blocked_clients ORDER BY created_at DESC")]
 
 
 @router.post("/blocked/unblock")
-def unblock(body: Unblock, user: dict = Depends(security_only), db: sqlite3.Connection = Depends(db_dep)):
+def unblock(body: Unblock, user: dict = Depends(security_only), db: sqlite3.Connection = Depends(db_dep, scope="function")):
     if not db.execute("DELETE FROM blocked_clients WHERE key = ?", (body.key,)).rowcount:
         raise HTTPException(404, "Not found")
     audit.log(db, "client_unblocked", actor=user)
@@ -89,7 +89,7 @@ def unblock(body: Unblock, user: dict = Depends(security_only), db: sqlite3.Conn
 
 
 @router.get("/decoys")
-def decoys(user: dict = Depends(security_only), db: sqlite3.Connection = Depends(db_dep)):
+def decoys(user: dict = Depends(security_only), db: sqlite3.Connection = Depends(db_dep, scope="function")):
     hits = lambda kind, target: db.execute("SELECT COUNT(*) FROM alerts WHERE kind = ? AND target = ?", (kind, target)).fetchone()[0]  # noqa: E731
     canaries = [{"id": r["id"], "station": r["station_id"], "area": r["area"], "hits": hits("canary", r["id"])}
                 for r in db.execute("SELECT id, station_id, area FROM cases WHERE is_canary = 1 ORDER BY id")]
@@ -100,7 +100,7 @@ def decoys(user: dict = Depends(security_only), db: sqlite3.Connection = Depends
 
 
 @router.get("/audit")
-def audit_log(limit: int = 200, user: dict = Depends(security_only), db: sqlite3.Connection = Depends(db_dep)):
+def audit_log(limit: int = 200, user: dict = Depends(security_only), db: sqlite3.Connection = Depends(db_dep, scope="function")):
     ok, bad_id = audit.verify_chain(db)
     rows = db.execute("SELECT * FROM audit_log ORDER BY id DESC LIMIT ?", (min(max(limit, 1), 500),)).fetchall()
     return {"chain_ok": ok, "first_bad": bad_id,

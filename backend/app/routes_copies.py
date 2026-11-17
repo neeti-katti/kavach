@@ -137,14 +137,14 @@ def _load_copy(db: sqlite3.Connection, copy_id: int, user: dict) -> sqlite3.Row:
 
 
 @router.post("/cases/{case_id}/copies/preview")
-def preview_copy(case_id: str, body: CopyRequest, user: dict = Depends(police), db: sqlite3.Connection = Depends(db_dep)):
+def preview_copy(case_id: str, body: CopyRequest, user: dict = Depends(police), db: sqlite3.Connection = Depends(db_dep, scope="function")):
     row = _load_case(db, case_id, user)
     audit.log(db, "copy_previewed", actor=user, case_id=case_id, detail=f"profile={body.profile}")
     return _build(db, row, body.profile)
 
 
 @router.post("/cases/{case_id}/copies", status_code=201)
-def create_copy(case_id: str, body: CopyRequest, user: dict = Depends(police), db: sqlite3.Connection = Depends(db_dep)):
+def create_copy(case_id: str, body: CopyRequest, user: dict = Depends(police), db: sqlite3.Connection = Depends(db_dep, scope="function")):
     row = _load_case(db, case_id, user)
     built = _build(db, row, body.profile)["kavach"]
     status = built["decision"]
@@ -159,7 +159,7 @@ def create_copy(case_id: str, body: CopyRequest, user: dict = Depends(police), d
 
 
 @router.get("/copies")
-def list_copies(user: dict = Depends(police), db: sqlite3.Connection = Depends(db_dep)):
+def list_copies(user: dict = Depends(police), db: sqlite3.Connection = Depends(db_dep, scope="function")):
     if user["role"] == "officer":
         rows = db.execute("SELECT p.* FROM public_copies p JOIN cases c ON c.id = p.case_id WHERE c.assigned_officer_id = ? OR p.created_by = ? "
                           "ORDER BY p.id DESC", (user["id"], user["id"]))
@@ -170,14 +170,14 @@ def list_copies(user: dict = Depends(police), db: sqlite3.Connection = Depends(d
 
 
 @router.get("/copies/{copy_id}")
-def get_copy(copy_id: int, user: dict = Depends(police), db: sqlite3.Connection = Depends(db_dep)):
+def get_copy(copy_id: int, user: dict = Depends(police), db: sqlite3.Connection = Depends(db_dep, scope="function")):
     r = _load_copy(db, copy_id, user)
     audit.log(db, "copy_viewed", actor=user, case_id=r["case_id"], detail=f"copy={copy_id}")
     return _copy_out(db, r, with_body=True)
 
 
 @router.post("/copies/{copy_id}/decide")
-def decide_copy(copy_id: int, body: Decision, user: dict = Depends(supervisor_only), db: sqlite3.Connection = Depends(db_dep)):
+def decide_copy(copy_id: int, body: Decision, user: dict = Depends(supervisor_only), db: sqlite3.Connection = Depends(db_dep, scope="function")):
     r = _load_copy(db, copy_id, user)
     if r["status"] != "needs_review":
         raise HTTPException(409, "This copy is not waiting for review.")

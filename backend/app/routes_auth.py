@@ -31,7 +31,7 @@ class Verify(BaseModel):
 
 
 @router.post("/staff/login")
-def staff_login(body: StaffLogin, request: Request, db: sqlite3.Connection = Depends(db_dep)):
+def staff_login(body: StaffLogin, request: Request, db: sqlite3.Connection = Depends(db_dep, scope="function")):
     username = body.username.strip().lower()
     user = db.execute("SELECT * FROM users WHERE username = ? AND role != 'survivor'", (username,)).fetchone()
     ok = verify_password(body.password, user["password_hash"] if user else DUMMY_HASH)
@@ -52,7 +52,7 @@ def staff_login(body: StaffLogin, request: Request, db: sqlite3.Connection = Dep
 
 
 @router.post("/survivor/start")
-def survivor_start(body: SurvivorStart, db: sqlite3.Connection = Depends(db_dep)):
+def survivor_start(body: SurvivorStart, db: sqlite3.Connection = Depends(db_dep, scope="function")):
     phone = re.sub(r"\D", "", body.phone)[-10:]
     if len(phone) != 10 or phone[0] not in "6789":
         raise HTTPException(400, "Enter a 10-digit mobile number.")
@@ -73,7 +73,7 @@ def survivor_start(body: SurvivorStart, db: sqlite3.Connection = Depends(db_dep)
 
 
 @router.post("/verify")
-def verify(body: Verify, db: sqlite3.Connection = Depends(db_dep)):
+def verify(body: Verify, db: sqlite3.Connection = Depends(db_dep, scope="function")):
     user_id = consume_challenge(db, body.challenge_id, body.code.strip())
     user = dict(db.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone())
     if user["locked"]:
@@ -84,19 +84,19 @@ def verify(body: Verify, db: sqlite3.Connection = Depends(db_dep)):
 
 
 @router.get("/me")
-def me(user: dict = Depends(current_user), db: sqlite3.Connection = Depends(db_dep)):
+def me(user: dict = Depends(current_user), db: sqlite3.Connection = Depends(db_dep, scope="function")):
     return public_user(db, user)
 
 
 @router.post("/logout")
-def logout(request: Request, user: dict = Depends(current_user), db: sqlite3.Connection = Depends(db_dep)):
+def logout(request: Request, user: dict = Depends(current_user), db: sqlite3.Connection = Depends(db_dep, scope="function")):
     end_session(db, request)
     audit.log(db, "logout", actor=user)
     return {"ok": True}
 
 
 @demo_router.get("/accounts")
-def demo_accounts(db: sqlite3.Connection = Depends(db_dep)):
+def demo_accounts(db: sqlite3.Connection = Depends(db_dep, scope="function")):
     """Demo convenience only: lists the synthetic staff accounts for quick sign-in."""
     if not DEMO_MODE:
         raise HTTPException(404, "Not found")

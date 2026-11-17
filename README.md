@@ -43,6 +43,29 @@ This resets everything and loads three cases:
 | `KV-2026-BLR-0008` | Adult, English | SI Meena Iyer: escalated (not accepted in time) |
 | `KV-2026-DEL-0005` | Adult, Hindi | Insp. Neha Verma: sealed, public copy released |
 
+## Deploy
+
+The whole project runs as one container: the API serves the built web app.
+
+```bash
+docker build -t kavach .
+docker run -p 8000:8000 kavach
+```
+
+Open http://localhost:8000. The demo story loads by itself on first start.
+
+**Render (free):** push this repository to GitHub, then in Render choose New > Blueprint and pick the repository.
+`render.yaml` creates one web service from the `Dockerfile`. Any Docker host works the same way (Railway, Fly.io,
+Koyeb, a VM); the container listens on `$PORT`.
+
+| Setting | Default | Meaning |
+|---|---|---|
+| `KAVACH_DEMO_MODE` | `1` | Show sign-in codes on screen instead of sending SMS. Anyone with the link can sign in as any demo account. |
+| `KAVACH_LOAD_DEMO` | `1` in the container | Load the demo story on start-up when there are no complaints. |
+| `KAVACH_DATA_DIR`, `KAVACH_KEYS_DIR` | inside the container | Point at a persistent disk to keep data across restarts. |
+
+On free hosts the storage resets when the service restarts or sleeps; the demo story reloads by itself.
+
 ## Demo accounts
 
 Codes are shown on screen (demo mode); press "Use it".
@@ -97,4 +120,5 @@ Encryption keys live in `backend/keys/` and the database in `backend/data/`; nei
   and Kavach never claims zero risk.
 - OCR runs in the browser but downloads its engine and language data from a public CDN; handwriting is weak.
 - Calls, SMS and OTP are simulated. No translation.
-- On one machine all requests come from localhost, so blocked clients are told apart by browser signature as well.
+- A blocked client is its address plus its browser signature, so one probe does not lock out everyone behind a shared
+  connection. A determined attacker can change the signature; account lock-outs and rate limits still apply.

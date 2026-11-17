@@ -194,7 +194,9 @@ def get_db():
 
 
 def db_dep():
-    """FastAPI dependency: one connection per request, committed on success."""
+    """FastAPI dependency: one connection per request, committed on success.
+    Always used as Depends(db_dep, scope="function"), so the commit happens before the response is sent. Otherwise a
+    fast client could act on a response (e.g. verify a sign-in code) before the data behind it is saved."""
     with get_db() as conn:
         yield conn
 

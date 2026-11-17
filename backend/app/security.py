@@ -4,7 +4,6 @@ Prevention (encryption, access checks, no bulk export) stops leaks. This layer c
 decoys that no honest workflow ever touches, so any touch is an alert.
 """
 import hashlib
-import ipaddress
 import sqlite3
 import threading
 import time
@@ -23,19 +22,17 @@ RATE_WINDOW_SECONDS = 60
 
 
 def client_key(request: Request | None) -> tuple[str | None, str | None, str | None]:
-    """The address of the caller. On one demo machine every request comes from localhost, so the browser or script
-    signature is added; in deployment the address alone is used."""
+    """Who is calling: the address plus the client's signature.
+
+    The address comes from the server's own proxy handling (uvicorn trusts the forwarding proxy and resolves the
+    caller's address), not from a header the caller could write. The signature is added because many people can share
+    one address (a police station's network, a presenter's laptop and their test script); blocking the address alone
+    would lock them all out because one client probed a decoy."""
     if request is None:
         return None, None, None
-    forwarded = request.headers.get("x-forwarded-for", "").split(",")[0].strip()
-    ip = forwarded or (request.client.host if request.client else "unknown")
+    ip = request.client.host if request.client else "unknown"
     ua = request.headers.get("user-agent", "")[:160]
-    try:
-        loopback = ipaddress.ip_address(ip).is_loopback
-    except ValueError:
-        loopback = False
-    key = f"{ip}|{hashlib.sha256(ua.encode()).hexdigest()[:12]}" if loopback else ip
-    return key, ip, ua
+    return f"{ip}|{hashlib.sha256(ua.encode()).hexdigest()[:12]}", ip, ua
 
 
 def raise_alert(db: sqlite3.Connection, kind: str, severity: str, detail: str, actor: dict | None = None,

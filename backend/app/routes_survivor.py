@@ -117,7 +117,7 @@ def preview(body: Preview, user: dict = Depends(survivor_only)):
 
 
 @router.post("/complaints", status_code=201)
-def file_complaint(body: Complaint, user: dict = Depends(survivor_only), db: sqlite3.Connection = Depends(db_dep)):
+def file_complaint(body: Complaint, user: dict = Depends(survivor_only), db: sqlite3.Connection = Depends(db_dep, scope="function")):
     identity = _identity_dict(body.identity)
     if len(identity["phone"]) != 10:
         raise HTTPException(400, "Enter a 10-digit mobile number.")
@@ -175,7 +175,7 @@ def file_complaint(body: Complaint, user: dict = Depends(survivor_only), db: sql
 
 
 @router.get("/complaints")
-def my_complaints(user: dict = Depends(survivor_only), db: sqlite3.Connection = Depends(db_dep)):
+def my_complaints(user: dict = Depends(survivor_only), db: sqlite3.Connection = Depends(db_dep, scope="function")):
     rows = db.execute(
         "SELECT * FROM cases WHERE survivor_user_id = ? AND is_canary = 0 ORDER BY created_at DESC, id DESC", (user["id"],)
     ).fetchall()
@@ -183,7 +183,7 @@ def my_complaints(user: dict = Depends(survivor_only), db: sqlite3.Connection = 
 
 
 @router.get("/complaints/{case_id}")
-def my_complaint(case_id: str, request: Request, user: dict = Depends(survivor_only), db: sqlite3.Connection = Depends(db_dep)):
+def my_complaint(case_id: str, request: Request, user: dict = Depends(survivor_only), db: sqlite3.Connection = Depends(db_dep, scope="function")):
     if db.execute("SELECT 1 FROM cases WHERE id = ? AND is_canary = 1", (case_id,)).fetchone():
         trip_canary(db, user, request, case_id)
         db.commit()

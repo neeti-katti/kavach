@@ -5,6 +5,7 @@
 All people, numbers and places are invented.
 """
 import json
+import os
 import sqlite3
 import sys
 import urllib.request
@@ -12,7 +13,7 @@ import urllib.request
 from .config import DB_PATH
 from .seed import reset_in_place
 
-API = "http://127.0.0.1:8000/api"
+API = os.environ.get("KAVACH_API_BASE", f"http://127.0.0.1:{os.environ.get('PORT', '8000')}/api")
 HEADERS = {"Content-Type": "application/json", "User-Agent": "kavach-demo-loader"}
 
 
@@ -57,8 +58,30 @@ HINDI = {
 }
 
 
+def load_when_ready(timeout: float = 60) -> None:
+    """Used at start-up on a fresh host: wait for the server to answer, then load the demo story once."""
+    import time
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        try:
+            with urllib.request.urlopen(API + "/health", timeout=2):
+                break
+        except OSError:
+            time.sleep(0.5)
+    db = sqlite3.connect(DB_PATH)
+    try:
+        has_cases = db.execute("SELECT COUNT(*) FROM cases WHERE is_canary = 0").fetchone()[0] > 0
+    finally:
+        db.close()
+    if not has_cases:
+        main()
+
+
 def main():
-    sys.stdout.reconfigure(encoding="utf-8")
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except (AttributeError, ValueError):
+        pass
     reset_in_place()
     survivor = login(phone="9000000001")
     a = call("/survivor/complaints", CHILD, survivor)

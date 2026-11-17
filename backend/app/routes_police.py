@@ -122,7 +122,7 @@ def _require_active(row: sqlite3.Row) -> None:
 # ---------- lists and summary ----------
 
 @router.get("/summary")
-def summary(user: dict = Depends(police), db: sqlite3.Connection = Depends(db_dep)):
+def summary(user: dict = Depends(police), db: sqlite3.Connection = Depends(db_dep, scope="function")):
     check_escalations(db)
     _expire_reveals(db)
     marks = ",".join("?" * len(OPEN_STATUSES))
@@ -146,7 +146,7 @@ def summary(user: dict = Depends(police), db: sqlite3.Connection = Depends(db_de
 
 
 @router.get("/cases")
-def list_cases(q: str | None = None, user: dict = Depends(police), db: sqlite3.Connection = Depends(db_dep)):
+def list_cases(q: str | None = None, user: dict = Depends(police), db: sqlite3.Connection = Depends(db_dep, scope="function")):
     check_escalations(db)
     if user["role"] == "officer":
         sql, args = "SELECT * FROM cases WHERE assigned_officer_id = ? AND is_canary = 0", [user["id"]]
@@ -160,7 +160,7 @@ def list_cases(q: str | None = None, user: dict = Depends(police), db: sqlite3.C
 
 
 @router.get("/officers")
-def station_officers(user: dict = Depends(supervisor_only), db: sqlite3.Connection = Depends(db_dep)):
+def station_officers(user: dict = Depends(supervisor_only), db: sqlite3.Connection = Depends(db_dep, scope="function")):
     rows = db.execute(
         "SELECT id, display_name, badge, gender, child_trained, on_duty, locked, last_assigned_at FROM users "
         "WHERE role = 'officer' AND station_id = ? AND is_honey = 0 ORDER BY display_name", (user["station_id"],)
@@ -172,7 +172,7 @@ def station_officers(user: dict = Depends(supervisor_only), db: sqlite3.Connecti
 # ---------- the case sheet ----------
 
 @router.get("/cases/{case_id}")
-def case_sheet(case_id: str, request: Request, user: dict = Depends(police), db: sqlite3.Connection = Depends(db_dep)):
+def case_sheet(case_id: str, request: Request, user: dict = Depends(police), db: sqlite3.Connection = Depends(db_dep, scope="function")):
     check_escalations(db)
     _expire_reveals(db)
     row = _load_case(db, case_id, user, request)
@@ -220,7 +220,7 @@ class RevealRequest(BaseModel):
 
 
 @router.post("/cases/{case_id}/accept")
-def accept(case_id: str, user: dict = Depends(officer_only), db: sqlite3.Connection = Depends(db_dep)):
+def accept(case_id: str, user: dict = Depends(officer_only), db: sqlite3.Connection = Depends(db_dep, scope="function")):
     row = _load_case(db, case_id, user)
     if row["accepted_at"]:
         raise HTTPException(409, "You have already accepted this case.")
@@ -230,7 +230,7 @@ def accept(case_id: str, user: dict = Depends(officer_only), db: sqlite3.Connect
 
 
 @router.post("/cases/{case_id}/status")
-def move_status(case_id: str, body: StatusChange, user: dict = Depends(officer_only), db: sqlite3.Connection = Depends(db_dep)):
+def move_status(case_id: str, body: StatusChange, user: dict = Depends(officer_only), db: sqlite3.Connection = Depends(db_dep, scope="function")):
     row = _load_case(db, case_id, user)
     _require_active(row)
     if FORWARD.get(row["status"]) != body.status:
@@ -241,7 +241,7 @@ def move_status(case_id: str, body: StatusChange, user: dict = Depends(officer_o
 
 
 @router.post("/cases/{case_id}/call")
-def masked_call(case_id: str, user: dict = Depends(officer_only), db: sqlite3.Connection = Depends(db_dep)):
+def masked_call(case_id: str, user: dict = Depends(officer_only), db: sqlite3.Connection = Depends(db_dep, scope="function")):
     row = _load_case(db, case_id, user)
     _require_active(row)
     relay = f"+91 80 47{secrets.randbelow(100):02d} {secrets.randbelow(10000):04d}"
@@ -251,7 +251,7 @@ def masked_call(case_id: str, user: dict = Depends(officer_only), db: sqlite3.Co
 
 
 @router.post("/cases/{case_id}/reveals", status_code=201)
-def request_reveal(case_id: str, body: RevealRequest, user: dict = Depends(officer_only), db: sqlite3.Connection = Depends(db_dep)):
+def request_reveal(case_id: str, body: RevealRequest, user: dict = Depends(officer_only), db: sqlite3.Connection = Depends(db_dep, scope="function")):
     _expire_reveals(db)
     row = _load_case(db, case_id, user)
     _require_active(row)
@@ -275,7 +275,7 @@ def request_reveal(case_id: str, body: RevealRequest, user: dict = Depends(offic
 
 
 @router.get("/reveals/{reveal_id}/value")
-def reveal_value(reveal_id: int, user: dict = Depends(officer_only), db: sqlite3.Connection = Depends(db_dep)):
+def reveal_value(reveal_id: int, user: dict = Depends(officer_only), db: sqlite3.Connection = Depends(db_dep, scope="function")):
     _expire_reveals(db)
     r = db.execute("SELECT * FROM reveals WHERE id = ? AND officer_id = ?", (reveal_id, user["id"])).fetchone()
     if not r:
@@ -296,7 +296,7 @@ def reveal_value(reveal_id: int, user: dict = Depends(officer_only), db: sqlite3
 
 
 @router.post("/cases/{case_id}/submit-report")
-def submit_report(case_id: str, body: Report, user: dict = Depends(officer_only), db: sqlite3.Connection = Depends(db_dep)):
+def submit_report(case_id: str, body: Report, user: dict = Depends(officer_only), db: sqlite3.Connection = Depends(db_dep, scope="function")):
     row = _load_case(db, case_id, user)
     _require_active(row)
     if row["status"] != "investigating":
@@ -326,7 +326,7 @@ class Decision(BaseModel):
 
 
 @router.post("/cases/{case_id}/reassign")
-def reassign(case_id: str, body: Reassign, user: dict = Depends(supervisor_only), db: sqlite3.Connection = Depends(db_dep)):
+def reassign(case_id: str, body: Reassign, user: dict = Depends(supervisor_only), db: sqlite3.Connection = Depends(db_dep, scope="function")):
     row = _load_case(db, case_id, user)
     if row["sealed"]:
         raise HTTPException(409, "Reopen the case before reassigning it.")
@@ -340,7 +340,7 @@ def reassign(case_id: str, body: Reassign, user: dict = Depends(supervisor_only)
 
 
 @router.post("/cases/{case_id}/reopen")
-def reopen(case_id: str, body: Reopen, user: dict = Depends(supervisor_only), db: sqlite3.Connection = Depends(db_dep)):
+def reopen(case_id: str, body: Reopen, user: dict = Depends(supervisor_only), db: sqlite3.Connection = Depends(db_dep, scope="function")):
     row = _load_case(db, case_id, user)
     if not row["sealed"]:
         raise HTTPException(409, "This case is not sealed.")
@@ -350,7 +350,7 @@ def reopen(case_id: str, body: Reopen, user: dict = Depends(supervisor_only), db
 
 
 @router.get("/reveals")
-def list_reveals(user: dict = Depends(police), db: sqlite3.Connection = Depends(db_dep)):
+def list_reveals(user: dict = Depends(police), db: sqlite3.Connection = Depends(db_dep, scope="function")):
     _expire_reveals(db)
     if user["role"] == "officer":
         rows = db.execute("SELECT * FROM reveals WHERE officer_id = ? ORDER BY id DESC LIMIT 100", (user["id"],))
@@ -361,7 +361,7 @@ def list_reveals(user: dict = Depends(police), db: sqlite3.Connection = Depends(
 
 
 @router.post("/reveals/{reveal_id}/decide")
-def decide(reveal_id: int, body: Decision, user: dict = Depends(supervisor_only), db: sqlite3.Connection = Depends(db_dep)):
+def decide(reveal_id: int, body: Decision, user: dict = Depends(supervisor_only), db: sqlite3.Connection = Depends(db_dep, scope="function")):
     r = db.execute("SELECT rv.*, c.station_id FROM reveals rv JOIN cases c ON c.id = rv.case_id WHERE rv.id = ?", (reveal_id,)).fetchone()
     if not r or r["station_id"] != user["station_id"]:
         raise HTTPException(404, "Not found")

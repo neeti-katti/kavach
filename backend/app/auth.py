@@ -97,7 +97,7 @@ def end_session(db: sqlite3.Connection, request: Request) -> None:
         db.execute("DELETE FROM sessions WHERE token_hash = ?", (_sha(token),))
 
 
-def current_user(request: Request, db: sqlite3.Connection = Depends(db_dep)) -> dict:
+def current_user(request: Request, db: sqlite3.Connection = Depends(db_dep, scope="function")) -> dict:
     token = _bearer(request)
     if not token:
         raise HTTPException(401, "Please sign in.")

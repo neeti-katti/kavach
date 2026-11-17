@@ -1,0 +1,14 @@
+# Render blueprint: New > Blueprint > pick this repository. One free web service built from the Dockerfile.
+services:
+  - type: web
+    name: kavach
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      - key: KAVACH_DEMO_MODE
+        value: "1"
+      - key: KAVACH_LOAD_DEMO
+        value: "1"
